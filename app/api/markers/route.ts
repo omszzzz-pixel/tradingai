@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const agentId = searchParams.get("agent");
+  const symbol = searchParams.get("symbol");
   if (!agentId) {
     return NextResponse.json({ error: "agent required" }, { status: 400 });
   }
@@ -13,13 +14,16 @@ export async function GET(req: Request) {
   const sb = supabaseService();
   const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
 
-  const { data, error } = await sb
+  let q = sb
     .from("trades")
     .select("opened_at, closed_at, side, entry_price, exit_price, pnl_pct")
     .eq("agent_id", agentId)
     .gte("opened_at", since)
     .order("opened_at", { ascending: true })
     .limit(60);
+  if (symbol) q = q.eq("symbol", symbol);
+
+  const { data, error } = await q;
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -31,21 +35,14 @@ export async function GET(req: Request) {
     pnl_pct?: number;
   };
   const markers: M[] = [];
-
   for (const t of data ?? []) {
-    const openTime = Math.floor(
-      new Date(t.opened_at as string).getTime() / 1000,
-    );
-    const closeTime = Math.floor(
-      new Date(t.closed_at as string).getTime() / 1000,
-    );
     markers.push({
-      time: openTime,
+      time: Math.floor(new Date(t.opened_at as string).getTime() / 1000),
       action: (t.side as string) === "long" ? "open_long" : "open_short",
       price: Number(t.entry_price),
     });
     markers.push({
-      time: closeTime,
+      time: Math.floor(new Date(t.closed_at as string).getTime() / 1000),
       action: "close",
       price: Number(t.exit_price),
       pnl_pct: Number(t.pnl_pct),

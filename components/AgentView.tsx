@@ -7,6 +7,8 @@ import TradesPanel from "./TradesPanel";
 import Chat from "./Chat";
 import Ticker from "./Ticker";
 import ActivityTicker from "./ActivityTicker";
+import SymbolSwitcher from "./SymbolSwitcher";
+import { DEFAULT_SYMBOL, type SymbolId } from "@/lib/symbols";
 
 type Tab = "main" | "chat";
 
@@ -22,6 +24,7 @@ export default function AgentView({
   style: "scalp" | "swing";
 }) {
   const [tab, setTab] = useState<Tab>("main");
+  const [symbol, setSymbol] = useState<SymbolId>(DEFAULT_SYMBOL);
 
   return (
     <>
@@ -37,9 +40,10 @@ export default function AgentView({
               {model} · {style === "scalp" ? "단타" : "스윙"}
             </span>
           </div>
-          <Ticker />
-          <ActivityTicker />
-          <Chart agentId={agentId} />
+          <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+          <Ticker symbol={symbol} />
+          <ActivityTicker symbol={symbol} />
+          <Chart agentId={agentId} symbol={symbol} />
         </div>
 
         <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3 lg:mt-3">
@@ -48,7 +52,7 @@ export default function AgentView({
               tab === "chat" ? "hidden lg:block" : "block"
             } mt-3 lg:mt-0`}
           >
-            <TradesPanel agentId={agentId} />
+            <TradesPanel agentId={agentId} symbol={symbol} />
           </div>
           <div
             className={`${

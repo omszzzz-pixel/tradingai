@@ -7,18 +7,23 @@ import Chat from "./Chat";
 import Ticker from "./Ticker";
 import LeaderboardSidebar from "./LeaderboardSidebar";
 import ActivityTicker from "./ActivityTicker";
+import SymbolSwitcher from "./SymbolSwitcher";
+import { DEFAULT_SYMBOL, type SymbolId } from "@/lib/symbols";
 
 type Tab = "main" | "chat";
 
 export default function HomeView() {
   const [tab, setTab] = useState<Tab>("main");
   const [selectedId, setSelectedId] = useState<string>("sonnet-scalp");
+  const [symbol, setSymbol] = useState<SymbolId>(DEFAULT_SYMBOL);
 
   useEffect(() => {
     let cancelled = false;
     async function loadDefault() {
       try {
-        const res = await fetch("/api/leaderboard", { cache: "no-store" });
+        const res = await fetch(`/api/leaderboard?symbol=${symbol}`, {
+          cache: "no-store",
+        });
         if (!res.ok) return;
         const j = (await res.json()) as { rows: { id: string }[] };
         if (!cancelled && j.rows && j.rows.length > 0) {
@@ -27,19 +32,20 @@ export default function HomeView() {
       } catch {}
     }
     loadDefault();
-  }, []);
+  }, [symbol]);
 
   return (
     <>
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20 lg:pb-4">
         <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
-          <Ticker />
-          <ActivityTicker />
+          <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+          <Ticker symbol={symbol} />
+          <ActivityTicker symbol={symbol} />
         </div>
 
         <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3">
           <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
-            <Chart agentId={selectedId} />
+            <Chart agentId={selectedId} symbol={symbol} />
           </div>
           <div
             className={`${
@@ -49,13 +55,14 @@ export default function HomeView() {
             <LeaderboardSidebar
               selectedId={selectedId}
               onSelect={setSelectedId}
+              symbol={symbol}
             />
           </div>
         </div>
 
         <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3 mt-3">
           <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
-            <TradesPanel agentId={selectedId} />
+            <TradesPanel agentId={selectedId} symbol={symbol} />
           </div>
           <div
             className={`${

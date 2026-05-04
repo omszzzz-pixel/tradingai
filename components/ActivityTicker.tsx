@@ -17,16 +17,21 @@ function relTime(iso: string): string {
   return `${Math.floor(diff / 86400)}일 전`;
 }
 
-export default function ActivityTicker() {
+export default function ActivityTicker({ symbol }: { symbol?: string }) {
   const [items, setItems] = useState<Item[]>([]);
   const [idx, setIdx] = useState(0);
   const [, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setItems([]);
+    setIdx(0);
     async function load() {
       try {
-        const res = await fetch("/api/activity", { cache: "no-store" });
+        const url = symbol
+          ? `/api/activity?symbol=${symbol}`
+          : "/api/activity";
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) return;
         const j = (await res.json()) as { items: Item[] };
         if (!cancelled) setItems(j.items ?? []);
@@ -38,7 +43,7 @@ export default function ActivityTicker() {
       cancelled = true;
       clearInterval(t);
     };
-  }, []);
+  }, [symbol]);
 
   useEffect(() => {
     if (items.length === 0) return;

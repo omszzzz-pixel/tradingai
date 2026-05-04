@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SYMBOLS, DEFAULT_SYMBOL, type SymbolId } from "@/lib/symbols";
 
 type Row = {
   id: string;
@@ -32,12 +33,16 @@ export default function Leaderboard() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [symbol, setSymbol] = useState<SymbolId>(DEFAULT_SYMBOL);
 
   useEffect(() => {
     let cancelled = false;
+    setRows(null);
     async function load() {
       try {
-        const res = await fetch("/api/leaderboard", { cache: "no-store" });
+        const res = await fetch(`/api/leaderboard?symbol=${symbol}`, {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error(`status ${res.status}`);
         const j = (await res.json()) as { rows: Row[] };
         if (!cancelled) setRows(j.rows);
@@ -51,7 +56,7 @@ export default function Leaderboard() {
       cancelled = true;
       clearInterval(t);
     };
-  }, []);
+  }, [symbol]);
 
   if (err) return <div className="panel p-5 text-[var(--down)]">{err}</div>;
   if (!rows) return <div className="panel p-5 text-[var(--fg-3)]">로딩…</div>;
@@ -62,18 +67,32 @@ export default function Leaderboard() {
 
   return (
     <div className="panel">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] flex-wrap gap-2">
         <div className="text-[15px] font-bold">AI 리더보드</div>
-        <div className="flex gap-1">
-          {(["all", "scalp", "swing"] as Filter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`btn-tab ${filter === f ? "active" : ""}`}
-            >
-              {f === "all" ? "전체" : f === "scalp" ? "단타" : "스윙"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1">
+            {SYMBOLS.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSymbol(s.id)}
+                className={`btn-tab ${symbol === s.id ? "active" : ""}`}
+              >
+                {s.short}
+              </button>
+            ))}
+          </div>
+          <span className="w-px h-4 bg-[var(--border)]" />
+          <div className="flex gap-1">
+            {(["all", "scalp", "swing"] as Filter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`btn-tab ${filter === f ? "active" : ""}`}
+              >
+                {f === "all" ? "전체" : f === "scalp" ? "단타" : "스윙"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

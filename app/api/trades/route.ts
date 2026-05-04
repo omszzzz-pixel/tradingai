@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const agentId = searchParams.get("agent");
+  const symbol = searchParams.get("symbol");
   if (!agentId) {
     return NextResponse.json({ error: "agent required" }, { status: 400 });
   }
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "agent not found" }, { status: 404 });
   }
 
-  const { data: trades, error: tErr } = await sb
+  let q = sb
     .from("trades")
     .select(
       "id, symbol, side, entry_price, exit_price, size, opened_at, closed_at, pnl, pnl_pct, close_decision_id",
@@ -28,6 +29,9 @@ export async function GET(req: Request) {
     .eq("agent_id", agentId)
     .order("closed_at", { ascending: false })
     .limit(50);
+  if (symbol) q = q.eq("symbol", symbol);
+
+  const { data: trades, error: tErr } = await q;
   if (tErr) {
     return NextResponse.json({ error: tErr.message }, { status: 500 });
   }

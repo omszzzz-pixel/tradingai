@@ -22,18 +22,23 @@ function fmtPct(n: number): string {
 export default function LeaderboardSidebar({
   selectedId,
   onSelect,
+  symbol,
 }: {
   selectedId: string;
   onSelect: (id: string) => void;
+  symbol: string;
 }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setRows(null);
     async function load() {
       try {
-        const res = await fetch("/api/leaderboard", { cache: "no-store" });
+        const res = await fetch(`/api/leaderboard?symbol=${symbol}`, {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error(`status ${res.status}`);
         const j = (await res.json()) as { rows: Row[] };
         if (!cancelled) setRows(j.rows);
@@ -47,7 +52,7 @@ export default function LeaderboardSidebar({
       cancelled = true;
       clearInterval(t);
     };
-  }, []);
+  }, [symbol]);
 
   return (
     <div className="panel flex flex-col h-full">

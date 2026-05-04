@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Fragment } from "react";
+import { fmtPrice, symbolShort } from "@/lib/symbols";
 
 type TradeRow = {
   id: string;
@@ -55,7 +56,13 @@ function relTime(iso: string): string {
   return `${Math.floor(diff / (86400 * 7))}주 전`;
 }
 
-export default function TradesPanel({ agentId }: { agentId: string }) {
+export default function TradesPanel({
+  agentId,
+  symbol,
+}: {
+  agentId: string;
+  symbol: string;
+}) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [openRow, setOpenRow] = useState<string | null>(null);
@@ -68,11 +75,13 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
 
   useEffect(() => {
     let cancelled = false;
+    setData(null);
     async function load() {
       try {
-        const res = await fetch(`/api/trades?agent=${agentId}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/trades?agent=${agentId}&symbol=${symbol}`,
+          { cache: "no-store" },
+        );
         if (!res.ok) throw new Error(`status ${res.status}`);
         const j = (await res.json()) as ApiResponse;
         if (!cancelled) setData(j);
@@ -86,7 +95,7 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
       cancelled = true;
       clearInterval(t);
     };
-  }, [agentId]);
+  }, [agentId, symbol]);
 
   if (err)
     return (
@@ -110,7 +119,10 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
     <div className="panel">
       <div className="px-4 py-3 border-b border-[var(--border)]">
         <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="text-[15px] font-bold">{data.agent.display_name}</div>
+          <div className="flex items-center gap-2">
+            <div className="text-[15px] font-bold">{data.agent.display_name}</div>
+            <span className="chip">{symbolShort(symbol)}/USDT</span>
+          </div>
           {!data.paywall.unlocked && (
             <div className="chip whitespace-nowrap">
               무료 · {data.paywall.delayMin}분 지연 · 근거 숨김
@@ -185,8 +197,8 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
                     <td className={`font-semibold ${t.side === "long" ? "up" : "down"}`}>
                       {t.side === "long" ? "매수" : "매도"}
                     </td>
-                    <td>{t.entry_price.toFixed(2)}</td>
-                    <td>{t.exit_price?.toFixed(2) ?? "—"}</td>
+                    <td>{fmtPrice(t.entry_price)}</td>
+                    <td>{t.exit_price !== null ? fmtPrice(t.exit_price) : "—"}</td>
                     <td className="text-[var(--fg-2)]">{t.size.toFixed(4)}</td>
                     <td className={`font-medium ${cls}`}>
                       {pnl >= 0 ? "+" : ""}

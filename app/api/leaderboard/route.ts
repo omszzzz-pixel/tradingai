@@ -41,8 +41,10 @@ function sharpe(pcts: number[]): number {
   return (m / sd) * Math.sqrt(pcts.length);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const sb = supabaseService();
+  const { searchParams } = new URL(req.url);
+  const symbol = searchParams.get("symbol");
 
   const { data: agents, error: aErr } = await sb
     .from("agents")
@@ -51,10 +53,13 @@ export async function GET() {
     return NextResponse.json({ error: aErr.message }, { status: 500 });
   }
 
-  const { data: trades, error: tErr } = await sb
+  let q = sb
     .from("trades")
     .select("agent_id, pnl, pnl_pct, closed_at")
     .order("closed_at", { ascending: true });
+  if (symbol) q = q.eq("symbol", symbol);
+
+  const { data: trades, error: tErr } = await q;
   if (tErr) {
     return NextResponse.json({ error: tErr.message }, { status: 500 });
   }

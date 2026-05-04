@@ -4,23 +4,24 @@ config();
 
 import { fetchKlinesRange } from "../lib/binance";
 import { supabaseService } from "../lib/supabase";
+import { SYMBOLS } from "../lib/symbols";
 
 type Personality = {
   id: string;
   winRate: number;
-  tradeCount: number;
   avgHoldMin: number;
+  weightPerCoin: number;
 };
 
 const PERSONALITIES: Personality[] = [
-  { id: "sonnet-scalp", winRate: 0.62, tradeCount: 28, avgHoldMin: 22 },
-  { id: "sonnet-swing", winRate: 0.58, tradeCount: 12, avgHoldMin: 240 },
-  { id: "opus-scalp", winRate: 0.55, tradeCount: 22, avgHoldMin: 28 },
-  { id: "opus-swing", winRate: 0.6, tradeCount: 10, avgHoldMin: 320 },
-  { id: "gpt-scalp", winRate: 0.52, tradeCount: 30, avgHoldMin: 18 },
-  { id: "gpt-swing", winRate: 0.56, tradeCount: 11, avgHoldMin: 280 },
-  { id: "gemini-scalp", winRate: 0.48, tradeCount: 26, avgHoldMin: 25 },
-  { id: "gemini-swing", winRate: 0.5, tradeCount: 9, avgHoldMin: 300 },
+  { id: "sonnet-scalp", winRate: 0.62, avgHoldMin: 22, weightPerCoin: 7 },
+  { id: "sonnet-swing", winRate: 0.58, avgHoldMin: 240, weightPerCoin: 3 },
+  { id: "opus-scalp", winRate: 0.55, avgHoldMin: 28, weightPerCoin: 6 },
+  { id: "opus-swing", winRate: 0.6, avgHoldMin: 320, weightPerCoin: 3 },
+  { id: "gpt-scalp", winRate: 0.52, avgHoldMin: 18, weightPerCoin: 8 },
+  { id: "gpt-swing", winRate: 0.56, avgHoldMin: 280, weightPerCoin: 3 },
+  { id: "gemini-scalp", winRate: 0.48, avgHoldMin: 25, weightPerCoin: 7 },
+  { id: "gemini-swing", winRate: 0.5, avgHoldMin: 300, weightPerCoin: 2 },
 ];
 
 const ENTRY_TEMPLATES = [
@@ -51,19 +52,26 @@ function tmpl(s: string, vars: Record<string, string>): string {
   return s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "—");
 }
 
-type Bar = { open: number; high: number; low: number; close: number; openTime: number; closeTime: number };
+type Bar = {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  openTime: number;
+  closeTime: number;
+};
 
-async function seedAgent(p: Personality, candles: Bar[], startingBalance: number) {
+async function seedAgentCoin(
+  p: Personality,
+  symbol: string,
+  candles: Bar[],
+  startingBalance: number,
+) {
   const sb = supabaseService();
-
-  console.log(`[${p.id}] clearing...`);
-  await sb.from("trades").delete().eq("agent_id", p.id);
-  await sb.from("positions").delete().eq("agent_id", p.id);
-  await sb.from("decisions").delete().eq("agent_id", p.id);
-
   const candlesPerHold = Math.max(1, Math.round(p.avgHoldMin / 5));
   const minOpenIdx = 60;
   const maxOpenIdx = candles.length - candlesPerHold * 2 - 5;
+  const tradeCount = p.weightPerCoin;
 
   type GenTrade = {
     side: "long" | "short";
@@ -75,16 +83,20 @@ async function seedAgent(p: Personality, candles: Bar[], startingBalance: number
   const generated: GenTrade[] = [];
 
   let attempts = 0;
-  while (generated.length < p.tradeCount && attempts < p.tradeCount * 10) {
+  while (generated.length < tradeCount && attempts < tradeCount * 10) {
     attempts++;
-    const openIdx = minOpenIdx + Math.floor(Math.random() * (maxOpenIdx - minOpenIdx));
+    const openIdx =
+      minOpenIdx + Math.floor(Math.random() * (maxOpenIdx - minOpenIdx));
     const holdNoise = 0.6 + Math.random() * 0.8;
     const closeIdx = Math.min(
       candles.length - 1,
       openIdx + Math.max(1, Math.round(candlesPerHold * holdNoise)),
     );
 
-    if (generated.some((g) => Math.abs(g.openIdx - openIdx) < candlesPerHold)) continue;
+    if (
+      generated.some((g) => Math.abs(g.openIdx - openIdx) < candlesPerHold)
+    )
+      continue;
 
     const wantWin = Math.random() < p.winRate;
     const openP = candles[openIdx].close;
@@ -137,7 +149,7 @@ async function seedAgent(p: Personality, candles: Bar[], startingBalance: number
       .from("decisions")
       .insert({
         agent_id: p.id,
-        symbol: "BTCUSDT",
+        symbol,
         action: g.side === "long" ? "open_long" : "open_short",
         price: g.entry,
         indicators: fakeIndOpen as unknown as Record<string, number>,
@@ -152,7 +164,7 @@ async function seedAgent(p: Personality, candles: Bar[], startingBalance: number
       .from("decisions")
       .insert({
         agent_id: p.id,
-        symbol: "BTCUSDT",
+        symbol,
         action: "close",
         price: g.exit,
         indicators: fakeIndClose as unknown as Record<string, number>,
@@ -170,7 +182,7 @@ async function seedAgent(p: Personality, candles: Bar[], startingBalance: number
 
     const { error: e3 } = await sb.from("trades").insert({
       agent_id: p.id,
-      symbol: "BTCUSDT",
+      symbol,
       side: g.side,
       entry_price: g.entry,
       exit_price: g.exit,
@@ -185,7 +197,7 @@ async function seedAgent(p: Personality, candles: Bar[], startingBalance: number
     if (e3) throw e3;
   }
 
-  console.log(`[${p.id}] inserted ${generated.length} trades`);
+  console.log(`  [${p.id}/${symbol}] inserted ${generated.length} trades`);
 }
 
 async function main() {
@@ -194,23 +206,41 @@ async function main() {
   const endTime = Date.now();
   const startTime = endTime - days * 86400_000;
 
-  console.log(`fetching ${days}d of BTCUSDT 5m candles...`);
-  const candles = await fetchKlinesRange("BTCUSDT", "5m", startTime, endTime);
-  console.log(`got ${candles.length} candles`);
+  const candleMap = new Map<string, Bar[]>();
+  for (const s of SYMBOLS) {
+    console.log(`fetching ${s.id} ${days}d 5m candles...`);
+    const candles = await fetchKlinesRange(s.id, "5m", startTime, endTime);
+    candleMap.set(s.id, candles);
+    console.log(`  got ${candles.length}`);
+  }
 
-  const { data: agents, error } = await sb.from("agents").select("id, starting_balance");
+  console.log("clearing existing seed data...");
+  for (const p of PERSONALITIES) {
+    await sb.from("trades").delete().eq("agent_id", p.id);
+    await sb.from("positions").delete().eq("agent_id", p.id);
+    await sb.from("decisions").delete().eq("agent_id", p.id);
+  }
+
+  const { data: agents, error } = await sb
+    .from("agents")
+    .select("id, starting_balance");
   if (error) throw error;
   const balanceMap = new Map<string, number>(
     (agents ?? []).map((a) => [a.id as string, Number(a.starting_balance)]),
   );
 
   for (const p of PERSONALITIES) {
-    const bal = balanceMap.get(p.id);
-    if (bal === undefined) {
+    const balance = balanceMap.get(p.id);
+    if (balance === undefined) {
       console.warn(`agent ${p.id} not in DB, skipping`);
       continue;
     }
-    await seedAgent(p, candles, bal);
+    console.log(`seeding ${p.id} across 4 coins...`);
+    for (const s of SYMBOLS) {
+      const candles = candleMap.get(s.id);
+      if (!candles) continue;
+      await seedAgentCoin(p, s.id, candles, balance);
+    }
   }
 
   console.log("done.");

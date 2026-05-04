@@ -11,6 +11,7 @@ import {
   type SeriesMarker,
   type Time,
 } from "lightweight-charts";
+import { fmtPrice } from "@/lib/symbols";
 
 type Bar = {
   time: number;
@@ -35,11 +36,11 @@ const ENDPOINTS = [
   "https://api.binance.com/api/v3/klines",
 ];
 
-async function fetchBars(tf: TF): Promise<Bar[]> {
+async function fetchBars(symbol: string, tf: TF): Promise<Bar[]> {
   let lastErr: unknown = null;
   for (const url of ENDPOINTS) {
     try {
-      const res = await fetch(`${url}?symbol=BTCUSDT&interval=${tf}&limit=200`, {
+      const res = await fetch(`${url}?symbol=${symbol}&interval=${tf}&limit=200`, {
         cache: "no-store",
       });
       if (!res.ok) {
@@ -61,8 +62,11 @@ async function fetchBars(tf: TF): Promise<Bar[]> {
   throw lastErr ?? new Error("fetch failed");
 }
 
-async function fetchMarkers(agentId: string): Promise<Marker[]> {
-  const res = await fetch(`/api/markers?agent=${agentId}`, { cache: "no-store" });
+async function fetchMarkers(agentId: string, symbol: string): Promise<Marker[]> {
+  const res = await fetch(
+    `/api/markers?agent=${agentId}&symbol=${symbol}`,
+    { cache: "no-store" },
+  );
   if (!res.ok) return [];
   const j = (await res.json()) as { markers: Marker[] };
   return j.markers ?? [];
@@ -85,7 +89,13 @@ const DARK = {
   down: "#4a8df0",
 };
 
-export default function Chart({ agentId }: { agentId: string }) {
+export default function Chart({
+  agentId,
+  symbol,
+}: {
+  agentId: string;
+  symbol: string;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -153,9 +163,14 @@ export default function Chart({ agentId }: { agentId: string }) {
 
   useEffect(() => {
     let cancelled = false;
+    setBars([]);
+    setMarkers([]);
     async function load() {
       try {
-        const [next, ms] = await Promise.all([fetchBars(tf), fetchMarkers(agentId)]);
+        const [next, ms] = await Promise.all([
+          fetchBars(symbol, tf),
+          fetchMarkers(agentId, symbol),
+        ]);
         if (!cancelled) {
           setBars(next);
           setMarkers(ms);
@@ -171,7 +186,7 @@ export default function Chart({ agentId }: { agentId: string }) {
       cancelled = true;
       clearInterval(t);
     };
-  }, [tf, agentId]);
+  }, [tf, agentId, symbol]);
 
   useEffect(() => {
     if (!seriesRef.current || bars.length === 0) return;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { symbolShort, fmtPrice } from "@/lib/symbols";
 
 type Stats = {
   lastPrice: number;
@@ -57,7 +58,8 @@ function fmtCompact(n: number): string {
   return n.toFixed(2);
 }
 
-export default function Ticker({ symbol = "BTCUSDT" }: { symbol?: string }) {
+export default function Ticker({ symbol }: { symbol: string }) {
+  const short = symbolShort(symbol);
   const [s, setS] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function Ticker({ symbol = "BTCUSDT" }: { symbol?: string }) {
     <div className="panel mb-3">
       <div className="px-4 py-3 flex flex-wrap items-center gap-x-7 gap-y-2.5">
         <div className="flex items-center gap-2.5">
-          <span className="text-[18px] font-bold">BTC/USDT</span>
+          <span className="text-[18px] font-bold">{short}/USDT</span>
           <span className="flex items-center gap-1 text-[11px] font-bold text-[var(--up)] tracking-wide">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--up)] opacity-60 animate-ping" />
@@ -97,7 +99,7 @@ export default function Ticker({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
         <div className="flex items-baseline gap-2.5">
           <span className={`num text-[28px] font-bold leading-none ${cls}`}>
-            {s ? fmt(s.lastPrice) : "—"}
+            {s ? fmtPrice(s.lastPrice) : "—"}
           </span>
           {s && (
             <span className={`num text-[14px] font-semibold ${cls}`}>
@@ -109,11 +111,11 @@ export default function Ticker({ symbol = "BTCUSDT" }: { symbol?: string }) {
         <div className="flex items-center gap-x-6 gap-y-1.5 flex-wrap ml-auto">
           <Stat
             label="24h 변동"
-            value={s ? `${isUp ? "+" : ""}${fmt(s.priceChange)}` : "—"}
+            value={s ? `${isUp ? "+" : ""}${fmtPrice(s.priceChange)}` : "—"}
             cls={cls}
           />
-          <Stat label="24h 고가" value={s ? fmt(s.highPrice) : "—"} />
-          <Stat label="24h 저가" value={s ? fmt(s.lowPrice) : "—"} />
+          <Stat label="24h 고가" value={s ? fmtPrice(s.highPrice) : "—"} />
+          <Stat label="24h 저가" value={s ? fmtPrice(s.lowPrice) : "—"} />
           <Stat
             label="24h 거래대금"
             value={s ? `${fmtCompact(s.quoteVolume)} USDT` : "—"}
