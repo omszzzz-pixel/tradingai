@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseService } from "@/lib/supabase";
-import { getServerUser, userHasAgent } from "@/lib/authServer";
 
 export const dynamic = "force-dynamic";
-
-const FREE_DELAY_MIN = 15;
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -12,9 +9,6 @@ export async function GET(req: Request) {
   if (!agentId) {
     return NextResponse.json({ error: "agent required" }, { status: 400 });
   }
-
-  const { user } = await getServerUser();
-  const unlocked = user ? await userHasAgent(user.id, agentId) : false;
 
   const sb = supabaseService();
   const { data: agent, error: aErr } = await sb
@@ -26,17 +20,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "agent not found" }, { status: 404 });
   }
 
-  const cutoffIso = unlocked
-    ? new Date().toISOString()
-    : new Date(Date.now() - FREE_DELAY_MIN * 60_000).toISOString();
-
   const { data: trades, error: tErr } = await sb
     .from("trades")
     .select(
       "id, symbol, side, entry_price, exit_price, size, opened_at, closed_at, pnl, pnl_pct, close_decision_id",
     )
     .eq("agent_id", agentId)
-    .lte("closed_at", cutoffIso)
     .order("closed_at", { ascending: false })
     .limit(50);
   if (tErr) {
@@ -44,8 +33,10 @@ export async function GET(req: Request) {
   }
 
   let reasoningById = new Map<string, string>();
-  if (unlocked && trades && trades.length > 0) {
-    const ids = trades.map((t) => t.close_decision_id).filter(Boolean) as string[];
+  if (trades && trades.length > 0) {
+    const ids = trades
+      .map((t) => t.close_decision_id)
+      .filter(Boolean) as string[];
     if (ids.length > 0) {
       const { data: decs } = await sb
         .from("decisions")
@@ -77,11 +68,11 @@ export async function GET(req: Request) {
       closed_at: t.closed_at,
       pnl: t.pnl !== null ? Number(t.pnl) : null,
       pnl_pct: t.pnl_pct !== null ? Number(t.pnl_pct) : null,
-      reasoning: unlocked ? reasoningById.get(t.close_decision_id as string) ?? null : null,
+      reasoning: reasoningById.get(t.close_decision_id as string) ?? null,
     })),
     paywall: {
-      unlocked,
-      delayMin: unlocked ? 0 : FREE_DELAY_MIN,
+      unlocked: true,
+      delayMin: 0,
     },
   });
 }

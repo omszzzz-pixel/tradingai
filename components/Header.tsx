@@ -10,8 +10,8 @@ export default function Header() {
             href="/"
             className="font-bold text-[17px] tracking-tight flex items-center"
           >
-            <span className="text-[var(--fg)]">tradingai</span>
-            <span className="text-[var(--accent)]">2</span>
+            <span className="text-[var(--fg)]">trading-</span>
+            <span style={{ color: "#f5b50a" }}>ai</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             <Link
@@ -19,12 +19,6 @@ export default function Header() {
               className="text-[14px] font-medium text-[var(--fg-2)] hover:text-[var(--fg)] px-2.5 py-1.5"
             >
               리더보드
-            </Link>
-            <Link
-              href="/pay"
-              className="text-[14px] font-medium text-[var(--fg-2)] hover:text-[var(--fg)] px-2.5 py-1.5"
-            >
-              구독
             </Link>
           </nav>
         </div>
