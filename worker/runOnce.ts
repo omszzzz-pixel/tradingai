@@ -1,4 +1,6 @@
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config();
 import { fetchKlines } from "../lib/binance";
 import { compute } from "../lib/indicators";
 import { decide } from "../lib/agent";

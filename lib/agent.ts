@@ -2,7 +2,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import type { Candle, Indicators, Decision, Position } from "./types";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let _client: Anthropic | null = null;
+function getClient(): Anthropic {
+  if (!_client) {
+    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _client;
+}
 
 const DecisionSchema = z.object({
   action: z.enum(["open_long", "open_short", "close", "hold"]),
@@ -64,7 +70,7 @@ export async function decide(
   ind: Indicators,
   pos: Position | null,
 ): Promise<{ decision: Decision; raw: string }> {
-  const msg = await client.messages.create({
+  const msg = await getClient().messages.create({
     model,
     max_tokens: 600,
     system: [
