@@ -13,6 +13,19 @@
   --accent: #f5b50a;
 }
 
+html.light {
+  --bg: #ffffff;
+  --bg-2: #f7f8fa;
+  --bg-3: #eef0f4;
+  --border: #e1e4ea;
+  --fg: #1a1d21;
+  --fg-2: #4b5563;
+  --fg-3: #8b8f97;
+  --up: #d6201f;
+  --down: #1565d8;
+  --accent: #c08600;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-2: var(--bg-2);
@@ -53,4 +66,4 @@ tbody tr:hover { background: var(--bg-3); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #2a3140; }
+::-webkit-scrollbar-thumb:hover { background: var(--border); }

@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   CandlestickSeries,
+  createSeriesMarkers,
   type IChartApi,
   type ISeriesApi,
+  type ISeriesMarkersPluginApi,
+  type SeriesMarker,
   type Time,
 } from "lightweight-charts";
 
@@ -17,16 +20,25 @@ type Bar = {
   close: number;
 };
 
+type Marker = {
+  time: number;
+  action: "open_long" | "open_short" | "close";
+  price: number;
+};
+
+const TIMEFRAMES = ["1m", "5m", "15m", "1h", "4h"] as const;
+type TF = (typeof TIMEFRAMES)[number];
+
 const ENDPOINTS = [
   "https://data-api.binance.vision/api/v3/klines",
   "https://api.binance.com/api/v3/klines",
 ];
 
-async function fetchBars(): Promise<Bar[]> {
+async function fetchBars(tf: TF): Promise<Bar[]> {
   let lastErr: unknown = null;
   for (const url of ENDPOINTS) {
     try {
-      const res = await fetch(`${url}?symbol=BTCUSDT&interval=5m&limit=200`, {
+      const res = await fetch(`${url}?symbol=BTCUSDT&interval=${tf}&limit=200`, {
         cache: "no-store",
       });
       if (!res.ok) {
@@ -48,53 +60,93 @@ async function fetchBars(): Promise<Bar[]> {
   throw lastErr ?? new Error("fetch failed");
 }
 
-export default function Chart() {
+async function fetchMarkers(agentId: string): Promise<Marker[]> {
+  const res = await fetch(`/api/markers?agent=${agentId}`, { cache: "no-store" });
+  if (!res.ok) return [];
+  const j = (await res.json()) as { markers: Marker[] };
+  return j.markers ?? [];
+}
+
+export default function Chart({ agentId }: { agentId: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  const [tf, setTf] = useState<TF>("5m");
   const [bars, setBars] = useState<Bar[]>([]);
+  const [markers, setMarkers] = useState<Marker[]>([]);
   const [err, setErr] = useState<string | null>(null);
+
+  const themeColors = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      document.documentElement.classList.contains("light")
+        ? {
+            bg: "#ffffff",
+            grid: "#eef0f4",
+            border: "#e1e4ea",
+            text: "#4b5563",
+            up: "#d6201f",
+            down: "#1565d8",
+          }
+        : {
+            bg: "#0e1217",
+            grid: "#1c2230",
+            border: "#232a36",
+            text: "#9aa4b2",
+            up: "#ff4d4f",
+            down: "#2f80ed",
+          },
+    [],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
     const chart = createChart(containerRef.current, {
       autoSize: true,
       layout: {
-        background: { color: "#0e1217" },
-        textColor: "#9aa4b2",
+        background: { color: themeColors.bg },
+        textColor: themeColors.text,
         fontFamily: "var(--font-mono), ui-monospace, monospace",
       },
       grid: {
-        vertLines: { color: "#1c2230" },
-        horzLines: { color: "#1c2230" },
+        vertLines: { color: themeColors.grid },
+        horzLines: { color: themeColors.grid },
       },
-      timeScale: { timeVisible: true, secondsVisible: false, borderColor: "#232a36" },
-      rightPriceScale: { borderColor: "#232a36" },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderColor: themeColors.border,
+      },
+      rightPriceScale: { borderColor: themeColors.border },
       crosshair: { mode: 1 },
     });
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#ff4d4f",
-      downColor: "#2f80ed",
-      wickUpColor: "#ff4d4f",
-      wickDownColor: "#2f80ed",
+      upColor: themeColors.up,
+      downColor: themeColors.down,
+      wickUpColor: themeColors.up,
+      wickDownColor: themeColors.down,
       borderVisible: false,
     });
     chartRef.current = chart;
     seriesRef.current = series;
+    markersRef.current = createSeriesMarkers(series, []);
     return () => {
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      markersRef.current = null;
     };
-  }, []);
+  }, [themeColors]);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const next = await fetchBars();
+        const [next, ms] = await Promise.all([fetchBars(tf), fetchMarkers(agentId)]);
         if (!cancelled) {
           setBars(next);
+          setMarkers(ms);
           setErr(null);
         }
       } catch (e) {
@@ -107,7 +159,7 @@ export default function Chart() {
       cancelled = true;
       clearInterval(t);
     };
-  }, []);
+  }, [tf, agentId]);
 
   useEffect(() => {
     if (!seriesRef.current || bars.length === 0) return;
@@ -120,17 +172,67 @@ export default function Chart() {
         close: b.close,
       })),
     );
+
+    const minBarTime = bars[0]?.time ?? 0;
+    const seriesMarkers: SeriesMarker<Time>[] = markers
+      .filter((m) => m.time * 1000 >= minBarTime)
+      .map((m) => {
+        if (m.action === "open_long") {
+          return {
+            time: m.time as Time,
+            position: "belowBar",
+            color: themeColors.up,
+            shape: "arrowUp",
+            text: `롱 ${m.price.toFixed(0)}`,
+          };
+        }
+        if (m.action === "open_short") {
+          return {
+            time: m.time as Time,
+            position: "aboveBar",
+            color: themeColors.down,
+            shape: "arrowDown",
+            text: `숏 ${m.price.toFixed(0)}`,
+          };
+        }
+        return {
+          time: m.time as Time,
+          position: "inBar",
+          color: themeColors.text,
+          shape: "circle",
+          text: `청산 ${m.price.toFixed(0)}`,
+        };
+      });
+    markersRef.current?.setMarkers(seriesMarkers);
+
     chartRef.current?.timeScale().fitContent();
-  }, [bars]);
+  }, [bars, markers, themeColors]);
 
   return (
-    <div className="relative">
-      <div ref={containerRef} className="h-[420px] w-full" />
-      {bars.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)]">
-          {err ? `차트 로드 실패: ${err}` : "차트 로딩…"}
-        </div>
-      )}
+    <div>
+      <div className="px-4 py-2 border-b border-[var(--border)] flex items-center gap-1">
+        {TIMEFRAMES.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTf(t)}
+            className={`text-[12px] num px-2 py-1 rounded ${
+              tf === t
+                ? "bg-[var(--bg-3)] text-[var(--fg)]"
+                : "text-[var(--fg-3)] hover:text-[var(--fg)]"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <div className="relative">
+        <div ref={containerRef} className="h-[420px] w-full" />
+        {bars.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)]">
+            {err ? `차트 로드 실패: ${err}` : "차트 로딩…"}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

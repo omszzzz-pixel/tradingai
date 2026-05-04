@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -13,8 +14,11 @@ export default function Header() {
             <Link href="/pay" className="hover:text-[var(--fg)]">구독</Link>
           </nav>
         </div>
-        <div className="text-[12px] text-[var(--fg-3)] num">
-          페이퍼 트레이딩 · 관찰용
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline text-[12px] text-[var(--fg-3)] num">
+            페이퍼 트레이딩 · 관찰용
+          </span>
+          <ThemeToggle />
         </div>
       </div>
     </header>
