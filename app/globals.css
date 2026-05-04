@@ -78,7 +78,7 @@ html, body {
 }
 
 table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.tbl th, table.tbl td { padding: 7px 10px; text-align: right; }
+table.tbl th, table.tbl td { padding: 7px 10px; text-align: right; white-space: nowrap; }
 table.tbl th:first-child, table.tbl td:first-child { text-align: left; }
 table.tbl th {
   color: var(--fg-3);

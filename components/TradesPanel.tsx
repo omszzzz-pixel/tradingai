@@ -93,26 +93,25 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
 
   return (
     <div className="panel">
-      <div className="px-4 py-3 border-b border-[var(--border)] flex items-center flex-wrap gap-x-7 gap-y-2">
-        <div className="text-[15px] font-bold">{data.agent.display_name}</div>
-
-        <Kpi label="잔고" value={`${fmtKrw(data.agent.balance)} KRW`} />
-        <Kpi
-          label="누적 손익"
-          value={`${totalPnl >= 0 ? "+" : ""}${fmtKrw(totalPnl)}`}
-          cls={totalPnl >= 0 ? "up" : "down"}
-        />
-        <Kpi
-          label="승률"
-          value={winRate !== "—" ? `${winRate}%` : "—"}
-        />
-        <Kpi label="매매" value={`${data.trades.length}건`} />
-
-        {!data.paywall.unlocked && (
-          <div className="ml-auto chip">
-            무료 · {data.paywall.delayMin}분 지연 · 근거 숨김
-          </div>
-        )}
+      <div className="px-4 py-3 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="text-[15px] font-bold">{data.agent.display_name}</div>
+          {!data.paywall.unlocked && (
+            <div className="chip whitespace-nowrap">
+              무료 · {data.paywall.delayMin}분 지연 · 근거 숨김
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2.5">
+          <Kpi label="잔고" value={`${fmtKrw(data.agent.balance)} KRW`} />
+          <Kpi
+            label="누적 손익"
+            value={`${totalPnl >= 0 ? "+" : ""}${fmtKrw(totalPnl)}`}
+            cls={totalPnl >= 0 ? "up" : "down"}
+          />
+          <Kpi label="승률" value={winRate !== "—" ? `${winRate}%` : "—"} />
+          <Kpi label="매매" value={`${data.trades.length}건`} />
+        </div>
       </div>
 
       <div className="overflow-x-auto max-h-[520px]">
