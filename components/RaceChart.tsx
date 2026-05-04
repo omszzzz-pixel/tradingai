@@ -9,6 +9,7 @@ import {
   type ISeriesApi,
   type Time,
 } from "lightweight-charts";
+import AgentLogo from "./AgentLogo";
 
 type SeriesData = {
   agent_id: string;
@@ -22,26 +23,15 @@ type SeriesData = {
 function modelInfo(agentId: string): {
   color: string;
   lineStyle: number;
-  initial: string;
 } {
   const isSwing = agentId.endsWith("-swing");
   const lineStyle = isSwing ? LineStyle.Dashed : LineStyle.Solid;
   let color = "#6b7280";
-  let initial = "?";
-  if (agentId.startsWith("sonnet")) {
-    color = "#c84a31";
-    initial = "S";
-  } else if (agentId.startsWith("opus")) {
-    color = "#9333ea";
-    initial = "O";
-  } else if (agentId.startsWith("gpt")) {
-    color = "#059669";
-    initial = "5";
-  } else if (agentId.startsWith("gemini")) {
-    color = "#0ea5e9";
-    initial = "G";
-  }
-  return { color, lineStyle, initial };
+  if (agentId.startsWith("sonnet")) color = "#c84a31";
+  else if (agentId.startsWith("opus")) color = "#9333ea";
+  else if (agentId.startsWith("gpt")) color = "#059669";
+  else if (agentId.startsWith("gemini")) color = "#0ea5e9";
+  return { color, lineStyle };
 }
 
 const LIGHT = {
@@ -61,7 +51,6 @@ type Label = {
   agent_id: string;
   name: string;
   color: string;
-  initial: string;
   x: number;
   y: number;
   origY: number;
@@ -203,7 +192,6 @@ export default function RaceChart({ symbol }: { symbol: string }) {
           agent_id: id,
           name: sd.display_name,
           color: m.color,
-          initial: m.initial,
           x: Number(x),
           y: Number(y),
           origY: Number(y),
@@ -264,13 +252,12 @@ export default function RaceChart({ symbol }: { symbol: string }) {
             style={{ left: l.x + 4, top: l.y }}
           >
             <div
-              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+              className="rounded-full overflow-hidden shrink-0"
               style={{
-                background: l.color,
                 boxShadow: `0 0 0 2px ${theme.bg}`,
               }}
             >
-              {l.initial}
+              <AgentLogo agentId={l.agent_id} size={20} />
             </div>
             <span
               className="text-[10px] font-bold whitespace-nowrap px-1 py-px rounded leading-tight"

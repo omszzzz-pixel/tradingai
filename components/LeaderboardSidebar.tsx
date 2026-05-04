@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AgentLogo from "./AgentLogo";
 
 type Row = {
   id: string;
@@ -79,25 +80,27 @@ export default function LeaderboardSidebar({
               <li key={r.id} className="flex-1 min-h-0 flex">
                 <button
                   onClick={() => onSelect(r.id)}
-                  className={`w-full px-3 flex items-center gap-2.5 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
+                  className={`w-full px-2.5 flex items-center gap-2 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
                     isSel
                       ? "bg-[var(--row-hover)] border-l-2 border-l-[var(--accent)]"
                       : "hover:bg-[var(--row-hover)] border-l-2 border-l-transparent"
                   }`}
                 >
                   <div
-                    className={`num text-[13px] font-bold w-5 ${
+                    className={`num text-[12px] font-bold w-4 shrink-0 ${
                       i < 3 ? "text-[var(--fg)]" : "text-[var(--fg-3)]"
                     }`}
                   >
                     {i + 1}
+                  </div>
+                  <div className="shrink-0">
+                    <AgentLogo agentId={r.id} size={22} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-semibold truncate leading-tight">
                       {r.display_name}
                     </div>
                     <div className="text-[10px] text-[var(--fg-3)] truncate leading-tight">
-                      {r.model.split("-")[0]} ·{" "}
                       {r.style === "scalp" ? "단타" : "스윙"} · {r.trades}건
                     </div>
                   </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import AgentLogo from "./AgentLogo";
 
 type Msg = {
   id: string;
@@ -134,12 +135,19 @@ export default function Chat() {
             }`}
           >
             <div className="flex items-center gap-1.5 mb-0.5">
+              {m.is_bot && (
+                <span className="rounded-full overflow-hidden shrink-0">
+                  <AgentLogo
+                    displayName={m.display_name ?? ""}
+                    size={16}
+                  />
+                </span>
+              )}
               <span
                 className={`text-[12px] font-semibold ${
                   m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
                 }`}
               >
-                {m.is_bot ? "🤖 " : ""}
                 {m.display_name ?? "익명"}
               </span>
               <span className="text-[var(--fg-3)] num text-[11px]">

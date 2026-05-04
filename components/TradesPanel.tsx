@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Fragment } from "react";
 import { fmtPrice, symbolShort } from "@/lib/symbols";
+import AgentLogo from "./AgentLogo";
 
 type TradeRow = {
   id: string;
@@ -120,6 +121,9 @@ export default function TradesPanel({
       <div className="px-4 py-3 border-b border-[var(--border)] shrink-0">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
+            <span className="rounded-full overflow-hidden shrink-0">
+              <AgentLogo agentId={data.agent.id} size={26} />
+            </span>
             <div className="text-[15px] font-bold">{data.agent.display_name}</div>
             <span className="chip">{symbolShort(symbol)}/USDT</span>
           </div>
