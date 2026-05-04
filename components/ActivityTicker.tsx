@@ -64,20 +64,22 @@ export default function ActivityTicker() {
             <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-60 animate-ping" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent)]" />
           </span>
-          실시간
+          최근 활동
         </span>
-        <span className="text-[var(--fg-3)] num shrink-0">{relTime(item.time)}</span>
         <span className="font-semibold shrink-0">🤖 {item.agent}</span>
         <span
           className={
             item.cls === "up"
-              ? "up font-medium truncate"
+              ? "up font-medium truncate flex-1"
               : item.cls === "down"
-              ? "down font-medium truncate"
-              : "text-[var(--fg-2)] truncate"
+              ? "down font-medium truncate flex-1"
+              : "text-[var(--fg-2)] truncate flex-1"
           }
         >
           {item.text}
+        </span>
+        <span className="num text-[11px] text-[var(--fg-3)] shrink-0 font-medium">
+          ({relTime(item.time)})
         </span>
       </div>
     </div>
