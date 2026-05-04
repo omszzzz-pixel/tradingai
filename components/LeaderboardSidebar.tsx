@@ -55,8 +55,8 @@ export default function LeaderboardSidebar({
   }, [symbol]);
 
   return (
-    <div className="panel">
-      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center justify-between">
+    <div className="panel flex flex-col h-full min-h-0">
+      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center justify-between shrink-0">
         <div className="text-[13px] font-bold">AI 리더보드</div>
         <Link
           href="/leaderboard"
@@ -71,22 +71,22 @@ export default function LeaderboardSidebar({
       ) : !rows ? (
         <div className="p-3 text-[var(--fg-3)] text-[12px]">로딩…</div>
       ) : (
-        <ul>
+        <ul className="flex-1 flex flex-col min-h-0">
           {rows.map((r, i) => {
             const isSel = r.id === selectedId;
             const cls = r.return_pct >= 0 ? "up" : "down";
             return (
-              <li key={r.id}>
+              <li key={r.id} className="flex-1 min-h-0 flex">
                 <button
                   onClick={() => onSelect(r.id)}
-                  className={`w-full px-3 py-1.5 flex items-center gap-2.5 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
+                  className={`w-full px-3 flex items-center gap-2.5 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
                     isSel
                       ? "bg-[var(--row-hover)] border-l-2 border-l-[var(--accent)]"
                       : "hover:bg-[var(--row-hover)] border-l-2 border-l-transparent"
                   }`}
                 >
                   <div
-                    className={`num text-[12px] font-bold w-4 ${
+                    className={`num text-[13px] font-bold w-5 ${
                       i < 3 ? "text-[var(--fg)]" : "text-[var(--fg-3)]"
                     }`}
                   >
