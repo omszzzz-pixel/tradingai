@@ -82,25 +82,29 @@ export default function Ticker({ symbol = "BTCUSDT" }: { symbol?: string }) {
 
   return (
     <div className="panel mb-3">
-      <div className="px-4 py-2 flex flex-wrap items-center gap-x-6 gap-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[15px] font-bold">BTC/USDT</span>
+      <div className="px-4 py-3 flex flex-wrap items-center gap-x-7 gap-y-2.5">
+        <div className="flex items-center gap-2.5">
+          <span className="text-[18px] font-bold">BTC/USDT</span>
           <span className="chip">5분 · Binance</span>
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <span className={`num text-[22px] font-bold leading-none ${cls}`}>
+        <div className="flex items-baseline gap-2.5">
+          <span className={`num text-[28px] font-bold leading-none ${cls}`}>
             {s ? fmt(s.lastPrice) : "—"}
           </span>
           {s && (
-            <span className={`num text-[12px] ${cls}`}>
+            <span className={`num text-[14px] font-semibold ${cls}`}>
               {arrow} {fmt(Math.abs(s.priceChangePercent), 2)}%
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-x-5 gap-y-1 text-[11px] flex-wrap ml-auto">
-          <Stat label="24h 변동" value={s ? `${isUp ? "+" : ""}${fmt(s.priceChange)}` : "—"} cls={cls} />
+        <div className="flex items-center gap-x-6 gap-y-1.5 flex-wrap ml-auto">
+          <Stat
+            label="24h 변동"
+            value={s ? `${isUp ? "+" : ""}${fmt(s.priceChange)}` : "—"}
+            cls={cls}
+          />
           <Stat label="24h 고가" value={s ? fmt(s.highPrice) : "—"} />
           <Stat label="24h 저가" value={s ? fmt(s.lowPrice) : "—"} />
           <Stat
@@ -124,8 +128,10 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[var(--fg-3)]">{label}</span>
-      <span className={`num text-[12px] ${cls ?? ""}`}>{value}</span>
+      <span className="text-[12px] text-[var(--fg-3)]">{label}</span>
+      <span className={`num text-[14px] font-medium ${cls ?? ""}`}>
+        {value}
+      </span>
     </div>
   );
 }

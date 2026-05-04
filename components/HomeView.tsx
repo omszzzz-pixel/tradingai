@@ -13,7 +13,7 @@ export default function HomeView({ agentId }: { agentId: string }) {
 
   return (
     <>
-      <div className="max-w-[1400px] mx-auto px-3 py-3 pb-16 lg:pb-3">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20 lg:pb-4">
         <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
           <Ticker />
           <Chart agentId={agentId} />
@@ -40,20 +40,20 @@ export default function HomeView({ agentId }: { agentId: string }) {
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[var(--bg-2)] border-t border-[var(--border)] flex">
         <button
           onClick={() => setTab("main")}
-          className={`flex-1 py-3 text-[12px] ${
+          className={`flex-1 py-3.5 text-[14px] ${
             tab === "main"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-semibold"
-              : "text-[var(--fg-3)]"
+              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
+              : "text-[var(--fg-3)] font-medium"
           }`}
         >
           홈
         </button>
         <button
           onClick={() => setTab("chat")}
-          className={`flex-1 py-3 text-[12px] ${
+          className={`flex-1 py-3.5 text-[14px] ${
             tab === "chat"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-semibold"
-              : "text-[var(--fg-3)]"
+              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
+              : "text-[var(--fg-3)] font-medium"
           }`}
         >
           채팅

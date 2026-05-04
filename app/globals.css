@@ -46,58 +46,44 @@ html.dark {
   --color-up: var(--up);
   --color-down: var(--down);
   --color-accent: var(--accent);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
 }
 
 html, body {
   background: var(--bg-soft);
   color: var(--fg);
-  font-family: var(--font-sans), system-ui, -apple-system, "Apple SD Gothic Neo",
-    "Malgun Gothic", sans-serif;
-  font-feature-settings: "tnum" 1;
-  font-size: 13px;
-  line-height: 1.45;
+  font-family: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+    "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-feature-settings: "tnum" 1, "ss06" 1;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .num {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  font-feature-settings: "tnum" 1, "ss06" 1;
+  letter-spacing: -0.005em;
 }
 
 .up { color: var(--up); }
 .down { color: var(--down); }
-.up-bg { background: rgba(200, 74, 49, 0.08); }
-.down-bg { background: rgba(18, 97, 196, 0.08); }
-html.dark .up-bg { background: rgba(255, 82, 71, 0.10); }
-html.dark .down-bg { background: rgba(74, 141, 240, 0.10); }
 
 .panel {
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
-.panel-head {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--fg);
-}
-
-table.tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
-table.tbl th, table.tbl td { padding: 5px 8px; text-align: right; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.tbl th, table.tbl td { padding: 7px 10px; text-align: right; }
 table.tbl th:first-child, table.tbl td:first-child { text-align: left; }
 table.tbl th {
   color: var(--fg-3);
-  font-weight: 400;
-  font-size: 11px;
+  font-weight: 500;
+  font-size: 12px;
   background: var(--bg-soft);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -108,8 +94,9 @@ table.tbl tbody tr:last-child { border-bottom: 0; }
 table.tbl tbody tr:hover { background: var(--row-hover); }
 
 .btn-tab {
-  font-size: 12px;
-  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
   color: var(--fg-3);
   border-bottom: 2px solid transparent;
   transition: color 0.15s;
@@ -118,13 +105,13 @@ table.tbl tbody tr:hover { background: var(--row-hover); }
 .btn-tab.active {
   color: var(--fg);
   border-bottom-color: var(--fg);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .chip {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 2px;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 3px;
   background: var(--bg-3);
   color: var(--fg-2);
   font-weight: 500;

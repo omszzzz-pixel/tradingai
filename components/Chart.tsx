@@ -116,8 +116,9 @@ export default function Chart({ agentId }: { agentId: string }) {
       layout: {
         background: { color: themeColors.bg },
         textColor: themeColors.text,
-        fontFamily: "var(--font-mono), ui-monospace, monospace",
-        fontSize: 11,
+        fontFamily:
+          '"Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif',
+        fontSize: 12,
       },
       grid: {
         vertLines: { color: themeColors.grid },
@@ -220,7 +221,7 @@ export default function Chart({ agentId }: { agentId: string }) {
 
   return (
     <div className="panel">
-      <div className="px-3 py-1.5 border-b border-[var(--border)] flex items-center gap-1">
+      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center gap-1">
         {TIMEFRAMES.map((t) => (
           <button
             key={t}
@@ -230,14 +231,14 @@ export default function Chart({ agentId }: { agentId: string }) {
             {t}
           </button>
         ))}
-        <div className="ml-auto text-[11px] text-[var(--fg-3)]">
+        <div className="ml-auto text-[12px] text-[var(--fg-3)] pr-2">
           진입 ▲▼ · 청산 ●
         </div>
       </div>
       <div className="relative">
-        <div ref={containerRef} className="h-[440px] w-full" />
+        <div ref={containerRef} className="h-[440px] lg:h-[480px] w-full" />
         {bars.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)] text-[12px]">
+          <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)] text-[13px]">
             {err ? `차트 로드 실패: ${err}` : "차트 로딩…"}
           </div>
         )}

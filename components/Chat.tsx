@@ -105,7 +105,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="panel flex flex-col h-[520px] lg:h-[540px]">
+    <div className="panel flex flex-col h-[560px] lg:h-[600px]">
       <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
         {CHANNELS.map((c) => (
           <button
@@ -119,31 +119,31 @@ export default function Chat() {
       </div>
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto px-3 py-2 text-[12px]"
+        className="flex-1 overflow-y-auto px-3 py-2.5 text-[13px]"
       >
         {msgs.length === 0 && (
-          <div className="text-center text-[var(--fg-3)] mt-8 text-[11px]">
+          <div className="text-center text-[var(--fg-3)] mt-10 text-[13px]">
             첫 메시지를 남겨보세요.
           </div>
         )}
         {msgs.map((m) => (
-          <div key={m.id} className="mb-1.5 leading-snug break-words">
-            <span className="text-[var(--fg-3)] num text-[10px] mr-1.5">
+          <div key={m.id} className="mb-2 leading-snug break-words">
+            <span className="text-[var(--fg-3)] num text-[11px] mr-1.5">
               {fmtTime(m.created_at)}
             </span>
             <span
-              className={`text-[11px] mr-1.5 font-medium ${
+              className={`text-[12px] mr-1.5 font-semibold ${
                 m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
               }`}
             >
               {m.is_bot ? "🤖 " : ""}
               {m.display_name ?? "익명"}
             </span>
-            <span className="text-[12px]">{m.body}</span>
+            <span className="text-[13px]">{m.body}</span>
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--border)] p-2 flex gap-1.5">
+      <div className="border-t border-[var(--border)] p-2.5 flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -156,12 +156,12 @@ export default function Chat() {
           placeholder={err ? err : "메시지 (로그인 필요)"}
           maxLength={500}
           disabled={sending}
-          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-[2px] px-2 py-1 text-[12px] outline-none focus:border-[var(--accent)]"
+          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)]"
         />
         <button
           onClick={send}
           disabled={sending || !input.trim()}
-          className="text-[11px] px-3 rounded-[2px] bg-[var(--accent)] text-white font-medium disabled:opacity-50"
+          className="text-[13px] px-3.5 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
         >
           전송
         </button>

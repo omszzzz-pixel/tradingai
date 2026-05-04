@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 
 type TradeRow = {
   id: string;
@@ -75,11 +75,13 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
 
   if (err)
     return (
-      <div className="panel p-4 text-[var(--down)] text-[12px]">에러: {err}</div>
+      <div className="panel p-5 text-[var(--down)] text-[14px]">
+        에러: {err}
+      </div>
     );
   if (!data)
     return (
-      <div className="panel p-4 text-[var(--fg-3)] text-[12px]">로딩…</div>
+      <div className="panel p-5 text-[var(--fg-3)] text-[14px]">로딩…</div>
     );
 
   const totalPnl = data.trades.reduce((s, t) => s + (t.pnl ?? 0), 0);
@@ -91,36 +93,20 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
 
   return (
     <div className="panel">
-      <div className="px-3 py-2.5 border-b border-[var(--border)] flex items-center flex-wrap gap-x-5 gap-y-1">
-        <div className="text-[13px] font-semibold">{data.agent.display_name}</div>
+      <div className="px-4 py-3 border-b border-[var(--border)] flex items-center flex-wrap gap-x-7 gap-y-2">
+        <div className="text-[15px] font-bold">{data.agent.display_name}</div>
 
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--fg-3)]">잔고</span>
-          <span className="num text-[12px] font-medium">
-            {fmtKrw(data.agent.balance)} KRW
-          </span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--fg-3)]">누적 손익</span>
-          <span
-            className={`num text-[12px] font-medium ${totalPnl >= 0 ? "up" : "down"}`}
-          >
-            {totalPnl >= 0 ? "+" : ""}
-            {fmtKrw(totalPnl)}
-          </span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--fg-3)]">승률</span>
-          <span className="num text-[12px] font-medium">
-            {winRate}{winRate !== "—" ? "%" : ""}
-          </span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--fg-3)]">매매</span>
-          <span className="num text-[12px] font-medium">
-            {data.trades.length}건
-          </span>
-        </div>
+        <Kpi label="잔고" value={`${fmtKrw(data.agent.balance)} KRW`} />
+        <Kpi
+          label="누적 손익"
+          value={`${totalPnl >= 0 ? "+" : ""}${fmtKrw(totalPnl)}`}
+          cls={totalPnl >= 0 ? "up" : "down"}
+        />
+        <Kpi
+          label="승률"
+          value={winRate !== "—" ? `${winRate}%` : "—"}
+        />
+        <Kpi label="매매" value={`${data.trades.length}건`} />
 
         {!data.paywall.unlocked && (
           <div className="ml-auto chip">
@@ -129,7 +115,7 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
         )}
       </div>
 
-      <div className="overflow-x-auto max-h-[460px]">
+      <div className="overflow-x-auto max-h-[520px]">
         <table className="tbl num">
           <thead>
             <tr>
@@ -148,7 +134,7 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
               <tr>
                 <td
                   colSpan={data.paywall.unlocked ? 8 : 7}
-                  className="text-center py-10 text-[var(--fg-3)]"
+                  className="text-center py-12 text-[var(--fg-3)] text-[13px]"
                 >
                   아직 매매내역이 없습니다.
                 </td>
@@ -159,40 +145,34 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
               const pct = t.pnl_pct ?? 0;
               const cls = pnl >= 0 ? "up" : "down";
               const isOpen = openRow === t.id;
+              const clickable = data.paywall.unlocked && !!t.reasoning;
               return (
-                <>
+                <Fragment key={t.id}>
                   <tr
-                    key={t.id}
-                    className={
-                      data.paywall.unlocked && t.reasoning
-                        ? "cursor-pointer"
-                        : ""
-                    }
+                    className={clickable ? "cursor-pointer" : ""}
                     onClick={() =>
-                      data.paywall.unlocked && t.reasoning
-                        ? setOpenRow(isOpen ? null : t.id)
-                        : null
+                      clickable ? setOpenRow(isOpen ? null : t.id) : null
                     }
                   >
                     <td className="text-[var(--fg-2)]">
                       {t.closed_at ? fmtTime(t.closed_at) : "—"}
                     </td>
-                    <td className={t.side === "long" ? "up" : "down"}>
+                    <td className={`font-semibold ${t.side === "long" ? "up" : "down"}`}>
                       {t.side === "long" ? "매수" : "매도"}
                     </td>
                     <td>{t.entry_price.toFixed(2)}</td>
                     <td>{t.exit_price?.toFixed(2) ?? "—"}</td>
                     <td className="text-[var(--fg-2)]">{t.size.toFixed(4)}</td>
-                    <td className={cls}>
+                    <td className={`font-medium ${cls}`}>
                       {pnl >= 0 ? "+" : ""}
                       {fmtKrw(pnl)}
                     </td>
-                    <td className={cls}>{fmtPct(pct)}</td>
+                    <td className={`font-semibold ${cls}`}>{fmtPct(pct)}</td>
                     {data.paywall.unlocked && (
-                      <td className="!text-left max-w-[280px] truncate text-[11px] text-[var(--fg-2)]">
+                      <td className="!text-left max-w-[260px] truncate text-[12px] text-[var(--fg-2)]">
                         {t.reasoning ? (
                           <>
-                            {isOpen ? "▼" : "▶"} {t.reasoning.slice(0, 40)}…
+                            {isOpen ? "▼" : "▶"} {t.reasoning.slice(0, 36)}…
                           </>
                         ) : (
                           "—"
@@ -201,21 +181,40 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
                     )}
                   </tr>
                   {isOpen && t.reasoning && (
-                    <tr key={t.id + "-r"}>
+                    <tr>
                       <td
                         colSpan={8}
-                        className="!text-left bg-[var(--bg-soft)] text-[11px] text-[var(--fg-2)] leading-relaxed py-2 px-4"
+                        className="!text-left bg-[var(--bg-soft)] text-[13px] text-[var(--fg-2)] leading-relaxed py-3 px-5"
                       >
                         {t.reasoning}
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function Kpi({
+  label,
+  value,
+  cls,
+}: {
+  label: string;
+  value: string;
+  cls?: string;
+}) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[12px] text-[var(--fg-3)]">{label}</span>
+      <span className={`num text-[14px] font-semibold ${cls ?? ""}`}>
+        {value}
+      </span>
     </div>
   );
 }

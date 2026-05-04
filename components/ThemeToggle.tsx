@@ -24,7 +24,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="테마 전환"
-      className="text-[11px] num px-2 py-1 rounded border border-[var(--border)] hover:bg-[var(--bg-3)] text-[var(--fg-2)]"
+      className="text-[13px] px-2.5 py-1.5 rounded border border-[var(--border)] hover:bg-[var(--bg-3)] text-[var(--fg-2)]"
     >
       {theme === "dark" ? "☀" : "🌙"}
     </button>
