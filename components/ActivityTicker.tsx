@@ -73,19 +73,20 @@ export default function ActivityTicker({ symbol }: { symbol?: string }) {
         </span>
         <span className="font-semibold shrink-0">🤖 {item.agent}</span>
         <span
-          className={
+          className={`${
             item.cls === "up"
-              ? "up font-medium truncate flex-1"
+              ? "up"
               : item.cls === "down"
-              ? "down font-medium truncate flex-1"
-              : "text-[var(--fg-2)] truncate flex-1"
-          }
+              ? "down"
+              : "text-[var(--fg-2)]"
+          } font-medium whitespace-nowrap`}
         >
           {item.text}
         </span>
-        <span className="num text-[11px] text-[var(--fg-3)] shrink-0 font-medium pl-1">
+        <span className="num text-[11px] text-[var(--fg-3)] shrink-0 font-medium whitespace-nowrap">
           ({relTime(item.time)})
         </span>
+        <span className="flex-1" />
       </div>
     </div>
   );
