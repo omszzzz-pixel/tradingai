@@ -1,14 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import Ticker from "./Ticker";
-import Leaderboard from "./Leaderboard";
+import { useEffect, useState } from "react";
+import Chart from "./Chart";
+import TradesPanel from "./TradesPanel";
 import Chat from "./Chat";
+import Ticker from "./Ticker";
+import LeaderboardSidebar from "./LeaderboardSidebar";
 
 type Tab = "main" | "chat";
 
 export default function HomeView() {
   const [tab, setTab] = useState<Tab>("main");
+  const [selectedId, setSelectedId] = useState<string>("sonnet-scalp");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDefault() {
+      try {
+        const res = await fetch("/api/leaderboard", { cache: "no-store" });
+        if (!res.ok) return;
+        const j = (await res.json()) as { rows: { id: string }[] };
+        if (!cancelled && j.rows && j.rows.length > 0) {
+          setSelectedId(j.rows[0].id);
+        }
+      } catch {}
+    }
+    loadDefault();
+  }, []);
 
   return (
     <>
@@ -19,7 +37,23 @@ export default function HomeView() {
 
         <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3">
           <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
-            <Leaderboard />
+            <Chart agentId={selectedId} />
+          </div>
+          <div
+            className={`${
+              tab === "chat" ? "hidden lg:block" : "block"
+            } mt-3 lg:mt-0`}
+          >
+            <LeaderboardSidebar
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          </div>
+        </div>
+
+        <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3 mt-3">
+          <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
+            <TradesPanel agentId={selectedId} />
           </div>
           <div
             className={`${
