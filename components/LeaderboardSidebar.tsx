@@ -55,23 +55,23 @@ export default function LeaderboardSidebar({
   }, [symbol]);
 
   return (
-    <div className="panel flex flex-col h-full">
-      <div className="px-3 py-2.5 border-b border-[var(--border)] flex items-center justify-between">
-        <div className="text-[14px] font-bold">AI 리더보드</div>
+    <div className="panel">
+      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center justify-between">
+        <div className="text-[13px] font-bold">AI 리더보드</div>
         <Link
           href="/leaderboard"
-          className="text-[12px] text-[var(--fg-3)] hover:text-[var(--accent)]"
+          className="text-[11px] text-[var(--fg-3)] hover:text-[var(--accent)]"
         >
           전체 →
         </Link>
       </div>
 
       {err ? (
-        <div className="p-4 text-[var(--down)] text-[13px]">{err}</div>
+        <div className="p-3 text-[var(--down)] text-[12px]">{err}</div>
       ) : !rows ? (
-        <div className="p-4 text-[var(--fg-3)] text-[13px]">로딩…</div>
+        <div className="p-3 text-[var(--fg-3)] text-[12px]">로딩…</div>
       ) : (
-        <ul className="flex-1 overflow-y-auto">
+        <ul>
           {rows.map((r, i) => {
             const isSel = r.id === selectedId;
             const cls = r.return_pct >= 0 ? "up" : "down";
@@ -79,29 +79,29 @@ export default function LeaderboardSidebar({
               <li key={r.id}>
                 <button
                   onClick={() => onSelect(r.id)}
-                  className={`w-full px-3 py-2.5 flex items-center gap-3 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
+                  className={`w-full px-3 py-1.5 flex items-center gap-2.5 border-b border-[var(--border)] last:border-b-0 text-left transition-colors ${
                     isSel
                       ? "bg-[var(--row-hover)] border-l-2 border-l-[var(--accent)]"
                       : "hover:bg-[var(--row-hover)] border-l-2 border-l-transparent"
                   }`}
                 >
                   <div
-                    className={`num text-[13px] font-bold w-5 ${
+                    className={`num text-[12px] font-bold w-4 ${
                       i < 3 ? "text-[var(--fg)]" : "text-[var(--fg-3)]"
                     }`}
                   >
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold truncate">
+                    <div className="text-[12px] font-semibold truncate leading-tight">
                       {r.display_name}
                     </div>
-                    <div className="text-[11px] text-[var(--fg-3)] truncate">
+                    <div className="text-[10px] text-[var(--fg-3)] truncate leading-tight">
                       {r.model.split("-")[0]} ·{" "}
                       {r.style === "scalp" ? "단타" : "스윙"} · {r.trades}건
                     </div>
                   </div>
-                  <div className={`num text-[13px] font-bold ${cls}`}>
+                  <div className={`num text-[12px] font-bold ${cls}`}>
                     {fmtPct(r.return_pct)}
                   </div>
                 </button>
