@@ -43,18 +43,22 @@ export async function applyDecision(
   pos: Position | null,
   startingBalance: number,
   raw: string,
+  at?: Date,
 ): Promise<{ decisionId: string; tradeId?: string; positionId?: string }> {
+  const atIso = at ? at.toISOString() : undefined;
+  const decisionRow: Record<string, unknown> = {
+    agent_id: agentId,
+    symbol,
+    action: decision.action,
+    price: ind.price,
+    indicators: ind as unknown as Record<string, number>,
+    reasoning: decision.reasoning,
+    raw_response: raw,
+  };
+  if (atIso) decisionRow.decided_at = atIso;
   const { data: dec, error: dErr } = await sb
     .from("decisions")
-    .insert({
-      agent_id: agentId,
-      symbol,
-      action: decision.action,
-      price: ind.price,
-      indicators: ind as unknown as Record<string, number>,
-      reasoning: decision.reasoning,
-      raw_response: raw,
-    })
+    .insert(decisionRow)
     .select("id")
     .single();
   if (dErr) throw dErr;
@@ -68,20 +72,22 @@ export async function applyDecision(
     const pnl = (exitPrice - pos.entry_price) * pos.size * dir;
     const pnlPct = ((exitPrice - pos.entry_price) / pos.entry_price) * 100 * dir;
 
+    const tradeRow: Record<string, unknown> = {
+      agent_id: agentId,
+      symbol,
+      side: pos.side,
+      entry_price: pos.entry_price,
+      exit_price: exitPrice,
+      size: pos.size,
+      opened_at: pos.opened_at,
+      pnl,
+      pnl_pct: pnlPct,
+      close_decision_id: decisionId,
+    };
+    if (atIso) tradeRow.closed_at = atIso;
     const { data: tr, error: tErr } = await sb
       .from("trades")
-      .insert({
-        agent_id: agentId,
-        symbol,
-        side: pos.side,
-        entry_price: pos.entry_price,
-        exit_price: exitPrice,
-        size: pos.size,
-        opened_at: pos.opened_at,
-        pnl,
-        pnl_pct: pnlPct,
-        close_decision_id: decisionId,
-      })
+      .insert(tradeRow)
       .select("id")
       .single();
     if (tErr) throw tErr;
@@ -101,16 +107,18 @@ export async function applyDecision(
     const size = notional / ind.price;
     const side = decision.action === "open_long" ? "long" : "short";
 
+    const positionRow: Record<string, unknown> = {
+      agent_id: agentId,
+      symbol,
+      side,
+      entry_price: ind.price,
+      size,
+      decision_id: decisionId,
+    };
+    if (atIso) positionRow.opened_at = atIso;
     const { data: p, error: pErr } = await sb
       .from("positions")
-      .insert({
-        agent_id: agentId,
-        symbol,
-        side,
-        entry_price: ind.price,
-        size,
-        decision_id: decisionId,
-      })
+      .insert(positionRow)
       .select("id")
       .single();
     if (pErr) throw pErr;

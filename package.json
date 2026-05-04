@@ -8,6 +8,7 @@
     "start": "next start",
     "worker": "tsx worker/index.ts",
     "worker:once": "tsx worker/runOnce.ts",
+    "backtest": "tsx worker/backtest.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
