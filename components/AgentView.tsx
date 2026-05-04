@@ -6,6 +6,7 @@ import Chart from "./Chart";
 import TradesPanel from "./TradesPanel";
 import Chat from "./Chat";
 import Ticker from "./Ticker";
+import ActivityTicker from "./ActivityTicker";
 
 type Tab = "main" | "chat";
 
@@ -37,6 +38,7 @@ export default function AgentView({
             </span>
           </div>
           <Ticker />
+          <ActivityTicker />
           <Chart agentId={agentId} />
         </div>
 

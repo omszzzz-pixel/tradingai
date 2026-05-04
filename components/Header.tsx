@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import LiveCount from "./LiveCount";
 
 export default function Header() {
   return (
@@ -22,10 +23,8 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2.5">
-          <span className="hidden sm:inline text-[12px] text-[var(--fg-3)]">
-            페이퍼 트레이딩 · 관찰용
-          </span>
+        <div className="flex items-center gap-3">
+          <LiveCount />
           <ThemeToggle />
         </div>
       </div>

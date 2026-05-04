@@ -6,6 +6,7 @@ import TradesPanel from "./TradesPanel";
 import Chat from "./Chat";
 import Ticker from "./Ticker";
 import LeaderboardSidebar from "./LeaderboardSidebar";
+import ActivityTicker from "./ActivityTicker";
 
 type Tab = "main" | "chat";
 
@@ -33,6 +34,7 @@ export default function HomeView() {
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20 lg:pb-4">
         <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
           <Ticker />
+          <ActivityTicker />
         </div>
 
         <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3">
