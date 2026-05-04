@@ -31,9 +31,25 @@ function fmtPct(n: number): string {
   return `${s}${n.toFixed(2)}%`;
 }
 
+function fmtTime(iso: string): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .format(d)
+    .replace(/\./g, "/")
+    .replace(/\/\s/g, "/")
+    .replace(/\/$/, "");
+}
+
 export default function TradesPanel({ agentId }: { agentId: string }) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [openRow, setOpenRow] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,46 +73,82 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
     };
   }, [agentId]);
 
-  if (err) return <div className="p-4 text-[var(--down)]">에러: {err}</div>;
-  if (!data) return <div className="p-4 text-[var(--fg-3)]">로딩…</div>;
+  if (err)
+    return (
+      <div className="panel p-4 text-[var(--down)] text-[12px]">에러: {err}</div>
+    );
+  if (!data)
+    return (
+      <div className="panel p-4 text-[var(--fg-3)] text-[12px]">로딩…</div>
+    );
+
+  const totalPnl = data.trades.reduce((s, t) => s + (t.pnl ?? 0), 0);
+  const winCount = data.trades.filter((t) => (t.pnl ?? 0) > 0).length;
+  const winRate =
+    data.trades.length > 0
+      ? ((winCount / data.trades.length) * 100).toFixed(1)
+      : "—";
 
   return (
-    <div className="bg-[var(--bg-2)] border border-[var(--border)] rounded">
-      <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-        <div>
-          <div className="text-[15px] font-medium">{data.agent.display_name}</div>
-          <div className="text-[12px] text-[var(--fg-3)]">
-            잔고 <span className="num">{fmtKrw(data.agent.balance)}</span> KRW
-          </div>
+    <div className="panel">
+      <div className="px-3 py-2.5 border-b border-[var(--border)] flex items-center flex-wrap gap-x-5 gap-y-1">
+        <div className="text-[13px] font-semibold">{data.agent.display_name}</div>
+
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--fg-3)]">잔고</span>
+          <span className="num text-[12px] font-medium">
+            {fmtKrw(data.agent.balance)} KRW
+          </span>
         </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--fg-3)]">누적 손익</span>
+          <span
+            className={`num text-[12px] font-medium ${totalPnl >= 0 ? "up" : "down"}`}
+          >
+            {totalPnl >= 0 ? "+" : ""}
+            {fmtKrw(totalPnl)}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--fg-3)]">승률</span>
+          <span className="num text-[12px] font-medium">
+            {winRate}{winRate !== "—" ? "%" : ""}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--fg-3)]">매매</span>
+          <span className="num text-[12px] font-medium">
+            {data.trades.length}건
+          </span>
+        </div>
+
         {!data.paywall.unlocked && (
-          <div className="text-[11px] text-[var(--accent)] num">
-            무료: {data.paywall.delayMin}분 지연 · 근거 숨김
+          <div className="ml-auto chip">
+            무료 · {data.paywall.delayMin}분 지연 · 근거 숨김
           </div>
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="num text-[12px]">
+      <div className="overflow-x-auto max-h-[460px]">
+        <table className="tbl num">
           <thead>
             <tr>
               <th>시간</th>
-              <th>종목</th>
               <th>방향</th>
               <th>진입가</th>
               <th>청산가</th>
               <th>수량</th>
-              <th>손익</th>
-              <th>%</th>
-              {data.paywall.unlocked && <th className="!text-left">판단 근거</th>}
+              <th>손익(KRW)</th>
+              <th>수익률</th>
+              {data.paywall.unlocked && <th className="!text-left">근거</th>}
             </tr>
           </thead>
           <tbody>
             {data.trades.length === 0 && (
               <tr>
                 <td
-                  colSpan={data.paywall.unlocked ? 9 : 8}
-                  className="text-center py-8 text-[var(--fg-3)]"
+                  colSpan={data.paywall.unlocked ? 8 : 7}
+                  className="text-center py-10 text-[var(--fg-3)]"
                 >
                   아직 매매내역이 없습니다.
                 </td>
@@ -106,33 +158,59 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
               const pnl = t.pnl ?? 0;
               const pct = t.pnl_pct ?? 0;
               const cls = pnl >= 0 ? "up" : "down";
+              const isOpen = openRow === t.id;
               return (
-                <tr key={t.id}>
-                  <td>
-                    {t.closed_at
-                      ? new Date(t.closed_at).toLocaleString("ko-KR", {
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-"}
-                  </td>
-                  <td>{t.symbol}</td>
-                  <td className={t.side === "long" ? "up" : "down"}>
-                    {t.side === "long" ? "롱" : "숏"}
-                  </td>
-                  <td>{t.entry_price.toFixed(2)}</td>
-                  <td>{t.exit_price?.toFixed(2) ?? "-"}</td>
-                  <td>{t.size.toFixed(4)}</td>
-                  <td className={cls}>{fmtKrw(pnl)}</td>
-                  <td className={cls}>{fmtPct(pct)}</td>
-                  {data.paywall.unlocked && (
-                    <td className="!text-left max-w-[420px] truncate font-sans">
-                      {t.reasoning ?? "-"}
+                <>
+                  <tr
+                    key={t.id}
+                    className={
+                      data.paywall.unlocked && t.reasoning
+                        ? "cursor-pointer"
+                        : ""
+                    }
+                    onClick={() =>
+                      data.paywall.unlocked && t.reasoning
+                        ? setOpenRow(isOpen ? null : t.id)
+                        : null
+                    }
+                  >
+                    <td className="text-[var(--fg-2)]">
+                      {t.closed_at ? fmtTime(t.closed_at) : "—"}
                     </td>
+                    <td className={t.side === "long" ? "up" : "down"}>
+                      {t.side === "long" ? "매수" : "매도"}
+                    </td>
+                    <td>{t.entry_price.toFixed(2)}</td>
+                    <td>{t.exit_price?.toFixed(2) ?? "—"}</td>
+                    <td className="text-[var(--fg-2)]">{t.size.toFixed(4)}</td>
+                    <td className={cls}>
+                      {pnl >= 0 ? "+" : ""}
+                      {fmtKrw(pnl)}
+                    </td>
+                    <td className={cls}>{fmtPct(pct)}</td>
+                    {data.paywall.unlocked && (
+                      <td className="!text-left max-w-[280px] truncate text-[11px] text-[var(--fg-2)]">
+                        {t.reasoning ? (
+                          <>
+                            {isOpen ? "▼" : "▶"} {t.reasoning.slice(0, 40)}…
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                  {isOpen && t.reasoning && (
+                    <tr key={t.id + "-r"}>
+                      <td
+                        colSpan={8}
+                        className="!text-left bg-[var(--bg-soft)] text-[11px] text-[var(--fg-2)] leading-relaxed py-2 px-4"
+                      >
+                        {t.reasoning}
+                      </td>
+                    </tr>
                   )}
-                </tr>
+                </>
               );
             })}
           </tbody>

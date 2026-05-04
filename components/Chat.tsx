@@ -30,6 +30,7 @@ function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 }
 
@@ -56,7 +57,12 @@ export default function Chat() {
       .channel(`chat-${channel}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `channel=eq.${channel}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `channel=eq.${channel}`,
+        },
         (payload) => {
           const m = payload.new as Msg;
           setMsgs((prev) => [...prev, m].slice(-100));
@@ -99,45 +105,45 @@ export default function Chat() {
   }
 
   return (
-    <div className="bg-[var(--bg-2)] border border-[var(--border)] rounded flex flex-col h-[480px]">
-      <div className="flex items-center gap-1 px-2 py-2 border-b border-[var(--border)]">
+    <div className="panel flex flex-col h-[520px] lg:h-[540px]">
+      <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
         {CHANNELS.map((c) => (
           <button
             key={c.id}
             onClick={() => setChannel(c.id)}
-            className={`text-[12px] px-2 py-1 rounded ${
-              channel === c.id
-                ? "bg-[var(--bg-3)] text-[var(--fg)]"
-                : "text-[var(--fg-3)] hover:text-[var(--fg)]"
-            }`}
+            className={`btn-tab ${channel === c.id ? "active" : ""}`}
           >
             {c.label}
           </button>
         ))}
       </div>
-      <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-2 text-[13px]">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto px-3 py-2 text-[12px]"
+      >
         {msgs.length === 0 && (
-          <div className="text-center text-[var(--fg-3)] mt-8 text-[12px]">
+          <div className="text-center text-[var(--fg-3)] mt-8 text-[11px]">
             첫 메시지를 남겨보세요.
           </div>
         )}
         {msgs.map((m) => (
           <div key={m.id} className="mb-1.5 leading-snug break-words">
-            <span className="text-[var(--fg-3)] num text-[11px] mr-2">
+            <span className="text-[var(--fg-3)] num text-[10px] mr-1.5">
               {fmtTime(m.created_at)}
             </span>
             <span
-              className={`text-[12px] mr-1.5 ${
+              className={`text-[11px] mr-1.5 font-medium ${
                 m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
               }`}
             >
-              {m.is_bot ? "🤖" : ""}{m.display_name ?? "익명"}
+              {m.is_bot ? "🤖 " : ""}
+              {m.display_name ?? "익명"}
             </span>
-            <span>{m.body}</span>
+            <span className="text-[12px]">{m.body}</span>
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--border)] p-2 flex gap-2">
+      <div className="border-t border-[var(--border)] p-2 flex gap-1.5">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -147,15 +153,15 @@ export default function Chat() {
               send();
             }
           }}
-          placeholder={err ? err : "메시지 입력 (로그인 필요)…"}
+          placeholder={err ? err : "메시지 (로그인 필요)"}
           maxLength={500}
           disabled={sending}
-          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2 py-1 text-[13px] outline-none focus:border-[var(--accent)]"
+          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-[2px] px-2 py-1 text-[12px] outline-none focus:border-[var(--accent)]"
         />
         <button
           onClick={send}
           disabled={sending || !input.trim()}
-          className="text-[12px] px-3 rounded bg-[var(--accent)] text-black font-medium disabled:opacity-50"
+          className="text-[11px] px-3 rounded-[2px] bg-[var(--accent)] text-white font-medium disabled:opacity-50"
         >
           전송
         </button>

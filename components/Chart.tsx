@@ -67,6 +67,23 @@ async function fetchMarkers(agentId: string): Promise<Marker[]> {
   return j.markers ?? [];
 }
 
+const LIGHT = {
+  bg: "#ffffff",
+  grid: "#f0f2f5",
+  border: "#d8dde3",
+  text: "#6b7280",
+  up: "#c84a31",
+  down: "#1261c4",
+};
+const DARK = {
+  bg: "#161b22",
+  grid: "#1c2230",
+  border: "#232a36",
+  text: "#9aa4b2",
+  up: "#ff5247",
+  down: "#4a8df0",
+};
+
 export default function Chart({ agentId }: { agentId: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -76,29 +93,21 @@ export default function Chart({ agentId }: { agentId: string }) {
   const [bars, setBars] = useState<Bar[]>([]);
   const [markers, setMarkers] = useState<Marker[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(false);
 
-  const themeColors = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      document.documentElement.classList.contains("light")
-        ? {
-            bg: "#ffffff",
-            grid: "#eef0f4",
-            border: "#e1e4ea",
-            text: "#4b5563",
-            up: "#d6201f",
-            down: "#1565d8",
-          }
-        : {
-            bg: "#0e1217",
-            grid: "#1c2230",
-            border: "#232a36",
-            text: "#9aa4b2",
-            up: "#ff4d4f",
-            down: "#2f80ed",
-          },
-    [],
-  );
+  useEffect(() => {
+    const update = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => obs.disconnect();
+  }, []);
+
+  const themeColors = useMemo(() => (isDark ? DARK : LIGHT), [isDark]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -108,6 +117,7 @@ export default function Chart({ agentId }: { agentId: string }) {
         background: { color: themeColors.bg },
         textColor: themeColors.text,
         fontFamily: "var(--font-mono), ui-monospace, monospace",
+        fontSize: 11,
       },
       grid: {
         vertLines: { color: themeColors.grid },
@@ -183,7 +193,7 @@ export default function Chart({ agentId }: { agentId: string }) {
             position: "belowBar",
             color: themeColors.up,
             shape: "arrowUp",
-            text: `롱 ${m.price.toFixed(0)}`,
+            text: `매수 ${m.price.toFixed(0)}`,
           };
         }
         if (m.action === "open_short") {
@@ -192,7 +202,7 @@ export default function Chart({ agentId }: { agentId: string }) {
             position: "aboveBar",
             color: themeColors.down,
             shape: "arrowDown",
-            text: `숏 ${m.price.toFixed(0)}`,
+            text: `매도 ${m.price.toFixed(0)}`,
           };
         }
         return {
@@ -209,26 +219,25 @@ export default function Chart({ agentId }: { agentId: string }) {
   }, [bars, markers, themeColors]);
 
   return (
-    <div>
-      <div className="px-4 py-2 border-b border-[var(--border)] flex items-center gap-1">
+    <div className="panel">
+      <div className="px-3 py-1.5 border-b border-[var(--border)] flex items-center gap-1">
         {TIMEFRAMES.map((t) => (
           <button
             key={t}
             onClick={() => setTf(t)}
-            className={`text-[12px] num px-2 py-1 rounded ${
-              tf === t
-                ? "bg-[var(--bg-3)] text-[var(--fg)]"
-                : "text-[var(--fg-3)] hover:text-[var(--fg)]"
-            }`}
+            className={`btn-tab ${tf === t ? "active" : ""}`}
           >
             {t}
           </button>
         ))}
+        <div className="ml-auto text-[11px] text-[var(--fg-3)]">
+          진입 ▲▼ · 청산 ●
+        </div>
       </div>
       <div className="relative">
-        <div ref={containerRef} className="h-[420px] w-full" />
+        <div ref={containerRef} className="h-[440px] w-full" />
         {bars.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)]">
+          <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)] text-[12px]">
             {err ? `차트 로드 실패: ${err}` : "차트 로딩…"}
           </div>
         )}

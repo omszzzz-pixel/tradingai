@@ -1,35 +1,44 @@
 @import "tailwindcss";
 
 :root {
+  --bg: #ffffff;
+  --bg-2: #ffffff;
+  --bg-3: #f5f7fa;
+  --bg-soft: #fafbfc;
+  --border: #ebedf0;
+  --border-strong: #d8dde3;
+  --fg: #1c2025;
+  --fg-2: #4a4f57;
+  --fg-3: #8b8f97;
+  --fg-4: #b3b8be;
+  --up: #c84a31;
+  --down: #1261c4;
+  --accent: #0064ff;
+  --row-hover: #f7f9fc;
+}
+
+html.dark {
   --bg: #0e1217;
   --bg-2: #161b22;
   --bg-3: #1c2230;
+  --bg-soft: #131820;
   --border: #232a36;
+  --border-strong: #2c3340;
   --fg: #e6e8eb;
   --fg-2: #9aa4b2;
   --fg-3: #6b7280;
-  --up: #ff4d4f;
-  --down: #2f80ed;
+  --fg-4: #4b5563;
+  --up: #ff5247;
+  --down: #4a8df0;
   --accent: #f5b50a;
-}
-
-html.light {
-  --bg: #ffffff;
-  --bg-2: #f7f8fa;
-  --bg-3: #eef0f4;
-  --border: #e1e4ea;
-  --fg: #1a1d21;
-  --fg-2: #4b5563;
-  --fg-3: #8b8f97;
-  --up: #d6201f;
-  --down: #1565d8;
-  --accent: #c08600;
+  --row-hover: #1c2230;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-2: var(--bg-2);
   --color-bg-3: var(--bg-3);
+  --color-bg-soft: var(--bg-soft);
   --color-border: var(--border);
   --color-fg: var(--fg);
   --color-fg-2: var(--fg-2);
@@ -42,28 +51,86 @@ html.light {
 }
 
 html, body {
-  background: var(--bg);
+  background: var(--bg-soft);
   color: var(--fg);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
   font-feature-settings: "tnum" 1;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
 }
 
 .num {
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .up { color: var(--up); }
 .down { color: var(--down); }
+.up-bg { background: rgba(200, 74, 49, 0.08); }
+.down-bg { background: rgba(18, 97, 196, 0.08); }
+html.dark .up-bg { background: rgba(255, 82, 71, 0.10); }
+html.dark .down-bg { background: rgba(74, 141, 240, 0.10); }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 0.5rem 0.75rem; text-align: right; }
-th:first-child, td:first-child { text-align: left; }
-th { color: var(--fg-2); font-weight: 500; font-size: 0.75rem; border-bottom: 1px solid var(--border); }
-tbody tr { border-bottom: 1px solid var(--border); }
-tbody tr:hover { background: var(--bg-3); }
+.panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border); }
+.panel-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+table.tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+table.tbl th, table.tbl td { padding: 5px 8px; text-align: right; }
+table.tbl th:first-child, table.tbl td:first-child { text-align: left; }
+table.tbl th {
+  color: var(--fg-3);
+  font-weight: 400;
+  font-size: 11px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+table.tbl tbody tr { border-bottom: 1px solid var(--border); }
+table.tbl tbody tr:last-child { border-bottom: 0; }
+table.tbl tbody tr:hover { background: var(--row-hover); }
+
+.btn-tab {
+  font-size: 12px;
+  padding: 6px 10px;
+  color: var(--fg-3);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+.btn-tab:hover { color: var(--fg); }
+.btn-tab.active {
+  color: var(--fg);
+  border-bottom-color: var(--fg);
+  font-weight: 600;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--bg-3);
+  color: var(--fg-2);
+  font-weight: 500;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }

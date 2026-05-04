@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "Claude Sonnet이 BTC/USDT를 페이퍼 트레이딩하는 모습을 실시간 관찰하세요. 투자 추천 아님.",
 };
 
-const themeBootstrap = `(function(){try{var t=localStorage.getItem('theme')||'dark';if(t==='light'){document.documentElement.classList.add('light');}}catch(e){}})();`;
+const themeBootstrap = `(function(){try{var t=localStorage.getItem('theme')||'light';if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
