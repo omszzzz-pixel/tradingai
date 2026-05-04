@@ -71,9 +71,6 @@ export default function ActivityTicker({ symbol }: { symbol?: string }) {
           </span>
           최근 활동
         </span>
-        <span className="num text-[11px] text-[var(--fg-3)] shrink-0 font-medium">
-          {relTime(item.time)}
-        </span>
         <span className="font-semibold shrink-0">🤖 {item.agent}</span>
         <span
           className={
@@ -85,6 +82,9 @@ export default function ActivityTicker({ symbol }: { symbol?: string }) {
           }
         >
           {item.text}
+        </span>
+        <span className="num text-[11px] text-[var(--fg-3)] shrink-0 font-medium pl-1">
+          ({relTime(item.time)})
         </span>
       </div>
     </div>

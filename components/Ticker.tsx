@@ -87,10 +87,10 @@ export default function Ticker({ symbol }: { symbol: string }) {
       <div className="px-4 py-3 flex flex-wrap items-center gap-x-7 gap-y-2.5">
         <div className="flex items-center gap-2.5">
           <span className="text-[18px] font-bold">{short}/USDT</span>
-          <span className="flex items-center gap-1 text-[11px] font-bold text-[var(--up)] tracking-wide">
+          <span className="flex items-center gap-1 text-[11px] font-bold tracking-wide text-emerald-500">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--up)] opacity-60 animate-ping" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--up)]" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
             </span>
             LIVE
           </span>
