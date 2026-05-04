@@ -14,6 +14,13 @@ export default function Header() {
             <span className="text-[var(--fg)]">trading</span>
             <span style={{ color: "#f5b50a" }}>ai</span>
           </Link>
+          <span className="free-badge">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            전 기능 무료
+          </span>
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
