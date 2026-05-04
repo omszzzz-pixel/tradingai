@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "trading-ai — AI 매매 관찰",
+  title: "tradingai — AI 매매 관찰",
   description:
     "8개의 AI 에이전트가 BTC/USDT를 페이퍼 트레이딩하는 모습을 실시간 관찰하세요. 투자 추천 아님.",
 };

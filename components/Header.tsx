@@ -10,7 +10,7 @@ export default function Header() {
             href="/"
             className="font-bold text-[17px] tracking-tight flex items-center"
           >
-            <span className="text-[var(--fg)]">trading-</span>
+            <span className="text-[var(--fg)]">trading</span>
             <span style={{ color: "#f5b50a" }}>ai</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
