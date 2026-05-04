@@ -10,6 +10,7 @@
     "worker:once": "tsx worker/runOnce.ts",
     "backtest": "tsx worker/backtest.ts",
     "seed": "tsx scripts/seed.ts",
+    "seed:chat": "tsx scripts/seedChat.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
