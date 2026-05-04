@@ -65,8 +65,14 @@ export default function AgentView({
       </div>
 
       {/* Mobile */}
-      <div className="lg:hidden max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20">
-        <div className={`${tab === "chat" ? "hidden" : "block"}`}>
+      <div className="lg:hidden">
+        <div
+          className={
+            tab === "chat"
+              ? "hidden"
+              : "max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20"
+          }
+        >
           {breadcrumb}
           <div className="mt-3">
             <SymbolSwitcher selected={symbol} onChange={setSymbol} />
@@ -78,8 +84,16 @@ export default function AgentView({
             <TradesPanel agentId={agentId} symbol={symbol} />
           </div>
         </div>
-        <div className={`${tab === "chat" ? "block" : "hidden"}`}>
-          <Chat />
+        <div
+          className={
+            tab === "chat"
+              ? "fixed inset-x-0 top-14 bottom-[50px] flex p-3"
+              : "hidden"
+          }
+        >
+          <div className="flex-1 min-h-0 flex">
+            <Chat />
+          </div>
         </div>
       </div>
 

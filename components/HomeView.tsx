@@ -66,8 +66,14 @@ export default function HomeView() {
       </div>
 
       {/* Mobile: page scroll, tab nav */}
-      <div className="lg:hidden max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20">
-        <div className={`${tab === "chat" ? "hidden" : "block"}`}>
+      <div className="lg:hidden">
+        <div
+          className={
+            tab === "chat"
+              ? "hidden"
+              : "max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20"
+          }
+        >
           <SymbolSwitcher selected={symbol} onChange={setSymbol} />
           <Ticker symbol={symbol} />
           <ActivityTicker symbol={symbol} />
@@ -83,8 +89,16 @@ export default function HomeView() {
             <TradesPanel agentId={selectedId} symbol={symbol} />
           </div>
         </div>
-        <div className={`${tab === "chat" ? "block" : "hidden"}`}>
-          <Chat />
+        <div
+          className={
+            tab === "chat"
+              ? "fixed inset-x-0 top-14 bottom-[50px] flex p-3"
+              : "hidden"
+          }
+        >
+          <div className="flex-1 min-h-0 flex">
+            <Chat />
+          </div>
         </div>
       </div>
 
