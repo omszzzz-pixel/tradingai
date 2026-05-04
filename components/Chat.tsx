@@ -127,19 +127,28 @@ export default function Chat() {
           </div>
         )}
         {msgs.map((m) => (
-          <div key={m.id} className="mb-2 leading-snug break-words">
-            <span className="text-[var(--fg-3)] num text-[11px] mr-1.5">
-              {fmtTime(m.created_at)}
-            </span>
-            <span
-              className={`text-[12px] mr-1.5 font-semibold ${
-                m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
-              }`}
-            >
-              {m.is_bot ? "🤖 " : ""}
-              {m.display_name ?? "익명"}
-            </span>
-            <span className="text-[13px]">{m.body}</span>
+          <div
+            key={m.id}
+            className={`mb-2.5 leading-snug break-words ${
+              m.is_bot ? "px-2 py-1.5 rounded bg-[var(--bg-soft)] border-l-2 border-[var(--accent)]" : ""
+            }`}
+          >
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span
+                className={`text-[12px] font-semibold ${
+                  m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
+                }`}
+              >
+                {m.is_bot ? "🤖 " : ""}
+                {m.display_name ?? "익명"}
+              </span>
+              <span className="text-[var(--fg-3)] num text-[11px]">
+                {fmtTime(m.created_at)}
+              </span>
+            </div>
+            <div className="text-[13px] text-[var(--fg)] pl-0.5">
+              {m.body}
+            </div>
           </div>
         ))}
       </div>

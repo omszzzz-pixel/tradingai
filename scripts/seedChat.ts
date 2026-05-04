@@ -145,7 +145,7 @@ async function main() {
     const sideKr = t.side === "long" ? "매수" : "매도";
     rows.push({
       display_name: name,
-      body: `${sideKr} 진입 @ ${Number(t.entry_price).toFixed(0)} (BTCUSDT)`,
+      body: `BTC ${sideKr} 진입 · ${Number(t.entry_price).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
       channel: "btc",
       is_bot: true,
       created_at: new Date(t.opened_at as string).toISOString(),
@@ -155,7 +155,7 @@ async function main() {
     const sign = pct >= 0 ? "+" : "";
     rows.push({
       display_name: name,
-      body: `청산 @ ${Number(t.exit_price).toFixed(0)} (${sign}${pct.toFixed(2)}%)`,
+      body: `청산 · ${Number(t.exit_price).toLocaleString("en-US", { maximumFractionDigits: 0 })} (${sign}${pct.toFixed(2)}%)`,
       channel: "btc",
       is_bot: true,
       created_at: new Date(t.closed_at as string).toISOString(),
@@ -165,12 +165,14 @@ async function main() {
   for (const t of (trades ?? []).slice(0, 8)) {
     const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
     const sideKr = t.side === "long" ? "매수" : "매도";
+    const pct = Number(t.pnl_pct);
+    const sign = pct >= 0 ? "+" : "";
     rows.push({
       display_name: name,
-      body: `[${name}] BTC ${sideKr} 진입 @ ${Number(t.entry_price).toFixed(0)}`,
+      body: `BTC ${sideKr} 청산 (${sign}${pct.toFixed(2)}%)`,
       channel: "all",
       is_bot: true,
-      created_at: new Date(t.opened_at as string).toISOString(),
+      created_at: new Date(t.closed_at as string).toISOString(),
     });
   }
 

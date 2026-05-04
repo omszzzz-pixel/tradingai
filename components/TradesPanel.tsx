@@ -46,10 +46,25 @@ function fmtTime(iso: string): string {
     .replace(/\/$/, "");
 }
 
+function relTime(iso: string): string {
+  const diff = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return "방금 전";
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}일 전`;
+  return `${Math.floor(diff / (86400 * 7))}주 전`;
+}
+
 export default function TradesPanel({ agentId }: { agentId: string }) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [openRow, setOpenRow] = useState<string | null>(null);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick((x) => x + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -154,7 +169,18 @@ export default function TradesPanel({ agentId }: { agentId: string }) {
                     }
                   >
                     <td className="text-[var(--fg-2)]">
-                      {t.closed_at ? fmtTime(t.closed_at) : "—"}
+                      {t.closed_at ? (
+                        <>
+                          <div className="text-[12px] font-medium text-[var(--fg)]">
+                            {relTime(t.closed_at)}
+                          </div>
+                          <div className="text-[10px] text-[var(--fg-3)]">
+                            {fmtTime(t.closed_at)}
+                          </div>
+                        </>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className={`font-semibold ${t.side === "long" ? "up" : "down"}`}>
                       {t.side === "long" ? "매수" : "매도"}

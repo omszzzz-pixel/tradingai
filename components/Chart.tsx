@@ -24,6 +24,7 @@ type Marker = {
   time: number;
   action: "open_long" | "open_short" | "close";
   price: number;
+  pnl_pct?: number;
 };
 
 const TIMEFRAMES = ["1m", "5m", "15m", "1h", "4h"] as const;
@@ -118,7 +119,7 @@ export default function Chart({ agentId }: { agentId: string }) {
         textColor: themeColors.text,
         fontFamily:
           '"Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif',
-        fontSize: 12,
+        fontSize: 13,
       },
       grid: {
         vertLines: { color: themeColors.grid },
@@ -194,7 +195,7 @@ export default function Chart({ agentId }: { agentId: string }) {
             position: "belowBar",
             color: themeColors.up,
             shape: "arrowUp",
-            text: `매수 ${m.price.toFixed(0)}`,
+            text: `▲ 매수`,
           };
         }
         if (m.action === "open_short") {
@@ -203,15 +204,18 @@ export default function Chart({ agentId }: { agentId: string }) {
             position: "aboveBar",
             color: themeColors.down,
             shape: "arrowDown",
-            text: `매도 ${m.price.toFixed(0)}`,
+            text: `▼ 매도`,
           };
         }
+        const pct = m.pnl_pct ?? 0;
+        const sign = pct >= 0 ? "+" : "";
+        const closeColor = pct >= 0 ? themeColors.up : themeColors.down;
         return {
           time: m.time as Time,
-          position: "inBar",
-          color: themeColors.text,
+          position: pct >= 0 ? "aboveBar" : "belowBar",
+          color: closeColor,
           shape: "circle",
-          text: `청산 ${m.price.toFixed(0)}`,
+          text: `청산 ${sign}${pct.toFixed(2)}%`,
         };
       });
     markersRef.current?.setMarkers(seriesMarkers);

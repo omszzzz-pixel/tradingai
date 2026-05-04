@@ -11,27 +11,46 @@ export async function GET(req: Request) {
   }
 
   const sb = supabaseService();
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
 
   const { data, error } = await sb
-    .from("decisions")
-    .select("decided_at, action, price")
+    .from("trades")
+    .select("opened_at, closed_at, side, entry_price, exit_price, pnl_pct")
     .eq("agent_id", agentId)
-    .in("action", ["open_long", "open_short", "close"])
-    .gte("decided_at", since)
-    .order("decided_at", { ascending: false })
-    .limit(100);
+    .gte("opened_at", since)
+    .order("opened_at", { ascending: true })
+    .limit(60);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const markers = (data ?? [])
-    .map((d) => ({
-      time: Math.floor(new Date(d.decided_at as string).getTime() / 1000),
-      action: d.action as "open_long" | "open_short" | "close",
-      price: Number(d.price),
-    }))
-    .reverse();
+  type M = {
+    time: number;
+    action: "open_long" | "open_short" | "close";
+    price: number;
+    pnl_pct?: number;
+  };
+  const markers: M[] = [];
+
+  for (const t of data ?? []) {
+    const openTime = Math.floor(
+      new Date(t.opened_at as string).getTime() / 1000,
+    );
+    const closeTime = Math.floor(
+      new Date(t.closed_at as string).getTime() / 1000,
+    );
+    markers.push({
+      time: openTime,
+      action: (t.side as string) === "long" ? "open_long" : "open_short",
+      price: Number(t.entry_price),
+    });
+    markers.push({
+      time: closeTime,
+      action: "close",
+      price: Number(t.exit_price),
+      pnl_pct: Number(t.pnl_pct),
+    });
+  }
 
   return NextResponse.json({ markers });
 }
