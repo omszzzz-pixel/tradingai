@@ -3,6 +3,7 @@ config({ path: ".env.local" });
 config();
 
 import { supabaseService } from "../lib/supabase";
+import { fmtPrice, symbolShort } from "../lib/symbols";
 
 const USER_NAMES = [
   "코인러",
@@ -128,9 +129,9 @@ async function main() {
 
   const { data: trades, error } = await sb
     .from("trades")
-    .select("agent_id, side, entry_price, exit_price, pnl_pct, opened_at, closed_at")
+    .select("agent_id, symbol, side, entry_price, exit_price, pnl_pct, opened_at, closed_at")
     .order("closed_at", { ascending: false })
-    .limit(40);
+    .limit(60);
   if (error) throw error;
 
   const { data: agents } = await sb
@@ -140,13 +141,24 @@ async function main() {
     (agents ?? []).map((a) => [a.id as string, a.display_name as string]),
   );
 
-  for (const t of (trades ?? []).slice(0, 16)) {
+  function channelForSymbol(sym: string): string {
+    if (sym === "BTCUSDT") return "btc";
+    if (sym === "ETHUSDT") return "eth";
+    return "all";
+  }
+
+  for (const t of (trades ?? []).slice(0, 24)) {
     const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
     const sideKr = t.side === "long" ? "매수" : "매도";
+    const symStr = symbolShort(t.symbol as string);
+    const channel = channelForSymbol(t.symbol as string);
+    const entryStr = fmtPrice(Number(t.entry_price));
+    const exitStr = fmtPrice(Number(t.exit_price));
+
     rows.push({
       display_name: name,
-      body: `BTC ${sideKr} 진입 · ${Number(t.entry_price).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-      channel: "btc",
+      body: `${symStr} ${sideKr} 진입 · ${entryStr}`,
+      channel,
       is_bot: true,
       created_at: new Date(t.opened_at as string).toISOString(),
     });
@@ -155,21 +167,23 @@ async function main() {
     const sign = pct >= 0 ? "+" : "";
     rows.push({
       display_name: name,
-      body: `청산 · ${Number(t.exit_price).toLocaleString("en-US", { maximumFractionDigits: 0 })} (${sign}${pct.toFixed(2)}%)`,
-      channel: "btc",
+      body: `${symStr} 청산 · ${exitStr} (${sign}${pct.toFixed(2)}%)`,
+      channel,
       is_bot: true,
       created_at: new Date(t.closed_at as string).toISOString(),
     });
   }
 
-  for (const t of (trades ?? []).slice(0, 8)) {
+  for (const t of (trades ?? []).slice(0, 12)) {
     const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
     const sideKr = t.side === "long" ? "매수" : "매도";
+    const symStr = symbolShort(t.symbol as string);
+    const exitStr = fmtPrice(Number(t.exit_price));
     const pct = Number(t.pnl_pct);
     const sign = pct >= 0 ? "+" : "";
     rows.push({
       display_name: name,
-      body: `BTC ${sideKr} 청산 (${sign}${pct.toFixed(2)}%)`,
+      body: `${symStr} ${sideKr} 청산 · ${exitStr} (${sign}${pct.toFixed(2)}%)`,
       channel: "all",
       is_bot: true,
       created_at: new Date(t.closed_at as string).toISOString(),
