@@ -36,41 +36,55 @@ export default function HomeView() {
 
   return (
     <>
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20 lg:pb-4">
-        <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
+      {/* Desktop: 100vh fixed layout, no page scroll */}
+      <div className="hidden lg:flex lg:flex-col lg:h-full max-w-[1400px] mx-auto w-full px-4 py-3 gap-3 overflow-hidden">
+        <div className="shrink-0">
           <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+        </div>
+        <div className="shrink-0 -mt-3">
           <Ticker symbol={symbol} />
           <ActivityTicker symbol={symbol} />
         </div>
-
-        <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3">
-          <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
+        <div className="flex-1 grid grid-cols-[3fr_1fr] grid-rows-[3fr_2fr] gap-3 min-h-0">
+          <div className="min-h-0 min-w-0">
             <Chart agentId={selectedId} symbol={symbol} />
           </div>
-          <div
-            className={`${
-              tab === "chat" ? "hidden lg:block" : "block"
-            } mt-3 lg:mt-0`}
-          >
+          <div className="min-h-0 min-w-0 row-span-1">
             <LeaderboardSidebar
               selectedId={selectedId}
               onSelect={setSelectedId}
               symbol={symbol}
             />
           </div>
-        </div>
-
-        <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3 mt-3">
-          <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
+          <div className="min-h-0 min-w-0">
             <TradesPanel agentId={selectedId} symbol={symbol} />
           </div>
-          <div
-            className={`${
-              tab === "chat" ? "block" : "hidden lg:block"
-            } mt-3 lg:mt-0`}
-          >
+          <div className="min-h-0 min-w-0">
             <Chat />
           </div>
+        </div>
+      </div>
+
+      {/* Mobile: page scroll, tab nav */}
+      <div className="lg:hidden max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20">
+        <div className={`${tab === "chat" ? "hidden" : "block"}`}>
+          <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+          <Ticker symbol={symbol} />
+          <ActivityTicker symbol={symbol} />
+          <Chart agentId={selectedId} symbol={symbol} />
+          <div className="mt-3">
+            <LeaderboardSidebar
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              symbol={symbol}
+            />
+          </div>
+          <div className="mt-3">
+            <TradesPanel agentId={selectedId} symbol={symbol} />
+          </div>
+        </div>
+        <div className={`${tab === "chat" ? "block" : "hidden"}`}>
+          <Chat />
         </div>
       </div>
 

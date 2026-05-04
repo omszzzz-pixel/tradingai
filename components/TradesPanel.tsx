@@ -116,8 +116,8 @@ export default function TradesPanel({
       : "—";
 
   return (
-    <div className="panel">
-      <div className="px-4 py-3 border-b border-[var(--border)]">
+    <div className="panel flex flex-col h-full min-h-0">
+      <div className="px-4 py-3 border-b border-[var(--border)] shrink-0">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <div className="text-[15px] font-bold">{data.agent.display_name}</div>
@@ -141,7 +141,7 @@ export default function TradesPanel({
         </div>
       </div>
 
-      <div className="overflow-x-auto max-h-[520px]">
+      <div className="overflow-auto flex-1 min-h-0">
         <table className="tbl num">
           <thead>
             <tr>

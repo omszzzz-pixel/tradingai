@@ -26,41 +26,60 @@ export default function AgentView({
   const [tab, setTab] = useState<Tab>("main");
   const [symbol, setSymbol] = useState<SymbolId>(DEFAULT_SYMBOL);
 
+  const breadcrumb = (
+    <div className="flex items-center gap-2 text-[13px] shrink-0">
+      <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
+        ← 리더보드
+      </Link>
+      <span className="text-[var(--fg-3)]">/</span>
+      <span className="font-semibold">{displayName}</span>
+      <span className="chip">
+        {model} · {style === "scalp" ? "단타" : "스윙"}
+      </span>
+    </div>
+  );
+
   return (
     <>
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20 lg:pb-4">
-        <div className={`${tab === "chat" ? "hidden lg:block" : "block"}`}>
-          <div className="flex items-center gap-2 mb-3 text-[13px]">
-            <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
-              ← 리더보드
-            </Link>
-            <span className="text-[var(--fg-3)]">/</span>
-            <span className="font-semibold">{displayName}</span>
-            <span className="chip">
-              {model} · {style === "scalp" ? "단타" : "스윙"}
-            </span>
-          </div>
+      {/* Desktop */}
+      <div className="hidden lg:flex lg:flex-col lg:h-full max-w-[1400px] mx-auto w-full px-4 py-3 gap-3 overflow-hidden">
+        {breadcrumb}
+        <div className="shrink-0">
           <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+        </div>
+        <div className="shrink-0 -mt-3">
+          <Ticker symbol={symbol} />
+          <ActivityTicker symbol={symbol} />
+        </div>
+        <div className="flex-1 grid grid-cols-[3fr_1fr] grid-rows-[3fr_2fr] gap-3 min-h-0">
+          <div className="min-h-0 min-w-0">
+            <Chart agentId={agentId} symbol={symbol} />
+          </div>
+          <div className="min-h-0 min-w-0 row-span-2">
+            <Chat />
+          </div>
+          <div className="min-h-0 min-w-0">
+            <TradesPanel agentId={agentId} symbol={symbol} />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile */}
+      <div className="lg:hidden max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20">
+        <div className={`${tab === "chat" ? "hidden" : "block"}`}>
+          {breadcrumb}
+          <div className="mt-3">
+            <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+          </div>
           <Ticker symbol={symbol} />
           <ActivityTicker symbol={symbol} />
           <Chart agentId={agentId} symbol={symbol} />
-        </div>
-
-        <div className="lg:grid lg:grid-cols-[3fr_1fr] lg:gap-3 lg:mt-3">
-          <div
-            className={`${
-              tab === "chat" ? "hidden lg:block" : "block"
-            } mt-3 lg:mt-0`}
-          >
+          <div className="mt-3">
             <TradesPanel agentId={agentId} symbol={symbol} />
           </div>
-          <div
-            className={`${
-              tab === "chat" ? "block" : "hidden lg:block"
-            } mt-3 lg:mt-0`}
-          >
-            <Chat />
-          </div>
+        </div>
+        <div className={`${tab === "chat" ? "block" : "hidden"}`}>
+          <Chat />
         </div>
       </div>
 

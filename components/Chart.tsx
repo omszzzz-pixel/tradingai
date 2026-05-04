@@ -239,8 +239,8 @@ export default function Chart({
   }, [bars, markers, themeColors]);
 
   return (
-    <div className="panel">
-      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center gap-1">
+    <div className="panel flex flex-col h-full min-h-0">
+      <div className="px-3 py-2 border-b border-[var(--border)] flex items-center gap-1 shrink-0">
         {TIMEFRAMES.map((t) => (
           <button
             key={t}
@@ -254,8 +254,8 @@ export default function Chart({
           진입 ▲▼ · 청산 ●
         </div>
       </div>
-      <div className="relative">
-        <div ref={containerRef} className="h-[440px] lg:h-[480px] w-full" />
+      <div className="relative flex-1 min-h-[280px]">
+        <div ref={containerRef} className="absolute inset-0" />
         {bars.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-[var(--fg-3)] text-[13px]">
             {err ? `차트 로드 실패: ${err}` : "차트 로딩…"}

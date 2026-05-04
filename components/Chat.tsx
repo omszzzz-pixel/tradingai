@@ -105,7 +105,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="panel flex flex-col h-[560px] lg:h-[600px]">
+    <div className="panel flex flex-col h-[560px] lg:h-full lg:min-h-0">
       <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
         {CHANNELS.map((c) => (
           <button

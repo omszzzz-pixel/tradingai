@@ -29,9 +29,9 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col lg:h-screen lg:overflow-hidden">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 lg:min-h-0 lg:overflow-hidden">{children}</main>
         <Footer />
       </body>
     </html>
