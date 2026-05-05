@@ -406,7 +406,7 @@ export default function Chat({
                                         : "down bg-[rgba(18,97,196,0.10)]"
                                   }`}
                                 >
-                                  승률 {winRate.toFixed(0)}%
+                                  정확도 {winRate.toFixed(0)}%
                                 </span>
                               )}
                               {stance && (

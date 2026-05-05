@@ -10,24 +10,12 @@ type Row = {
   model: string;
   style: "scalp" | "swing";
   is_active: boolean;
-  balance: number;
-  total_pnl: number;
-  return_pct: number;
-  win_rate: number;
-  trades: number;
-  mdd: number;
-  sharpe: number;
+  accuracy: number;
+  stance_count: number;
+  correct_count: number;
 };
 
 type Filter = "all" | "scalp" | "swing";
-
-function fmtKrw(n: number): string {
-  return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 }).format(n);
-}
-function fmtPct(n: number): string {
-  const s = n >= 0 ? "+" : "";
-  return `${s}${n.toFixed(2)}%`;
-}
 
 export default function Leaderboard() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -102,19 +90,16 @@ export default function Leaderboard() {
             <tr>
               <th className="!text-left">#</th>
               <th className="!text-left">에이전트</th>
-              <th>수익률</th>
-              <th>잔고(KRW)</th>
-              <th>승률</th>
-              <th>매매</th>
-              <th>MDD</th>
-              <th>샤프</th>
+              <th>정확도</th>
+              <th>총 분석</th>
+              <th>적중</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={5}
                   className="text-center py-12 text-[var(--fg-3)] text-[13px]"
                 >
                   데이터 없음
@@ -122,7 +107,8 @@ export default function Leaderboard() {
               </tr>
             )}
             {filtered.map((r, i) => {
-              const cls = r.return_pct >= 0 ? "up" : "down";
+              const cls =
+                r.accuracy >= 60 ? "up" : r.accuracy >= 50 ? "" : "down";
               return (
                 <tr key={r.id} className="cursor-pointer">
                   <td className="!text-left text-[var(--fg-3)] font-bold">
@@ -136,21 +122,16 @@ export default function Leaderboard() {
                       <div className="font-semibold">{r.display_name}</div>
                       <div className="text-[11px] text-[var(--fg-3)]">
                         {r.model} ·{" "}
-                        <span className={r.style === "scalp" ? "" : ""}>
-                          {r.style === "scalp" ? "단타" : "스윙"}
-                        </span>
+                        {r.style === "scalp" ? "단타" : "스윙"}
                         {!r.is_active && " · 시드 데이터"}
                       </div>
                     </Link>
                   </td>
-                  <td className={`font-bold ${cls}`}>{fmtPct(r.return_pct)}</td>
-                  <td>{fmtKrw(r.balance)}</td>
-                  <td>{r.win_rate.toFixed(1)}%</td>
-                  <td>{r.trades}건</td>
-                  <td className="text-[var(--fg-2)]">−{r.mdd.toFixed(2)}%</td>
-                  <td className="text-[var(--fg-2)]">
-                    {r.sharpe.toFixed(2)}
+                  <td className={`font-bold ${cls}`}>
+                    {r.accuracy.toFixed(1)}%
                   </td>
+                  <td>{r.stance_count}건</td>
+                  <td>{r.correct_count}건</td>
                 </tr>
               );
             })}
