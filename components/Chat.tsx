@@ -437,7 +437,7 @@ export default function Chat({
                               </span>
                             </div>
                             {rest && (
-                              <div className="text-[13px] text-[var(--fg)] leading-relaxed">
+                              <div className="text-[13px] text-[var(--fg)] leading-relaxed whitespace-pre-line">
                                 {colorize(rest)}
                               </div>
                             )}
