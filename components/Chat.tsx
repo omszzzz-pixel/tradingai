@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import AgentLogo from "./AgentLogo";
 
@@ -10,6 +11,7 @@ type Msg = {
   body: string;
   channel: string;
   is_bot: boolean;
+  trade_id: string | null;
   created_at: string;
 };
 
@@ -186,6 +188,14 @@ export default function Chat() {
             <div className="text-[13px] text-[var(--fg)] pl-0.5 whitespace-pre-line">
               {m.is_bot ? renderBotBody(m.body) : m.body}
             </div>
+            {m.is_bot && m.trade_id && (
+              <Link
+                href={`/trades/${m.trade_id}`}
+                className="inline-block mt-2 text-[11px] font-semibold text-[var(--accent)] hover:underline"
+              >
+                분석 보기 →
+              </Link>
+            )}
           </div>
         ))}
       </div>

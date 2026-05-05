@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const sb = supabaseService();
   const { data, error } = await sb
     .from("messages")
-    .select("id, display_name, body, channel, is_bot, created_at")
+    .select("id, display_name, body, channel, is_bot, trade_id, created_at")
     .eq("is_bot", isBot)
     .order("created_at", { ascending: false })
     .limit(80);

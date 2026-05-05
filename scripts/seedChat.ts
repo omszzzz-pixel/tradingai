@@ -129,7 +129,7 @@ async function main() {
 
   const { data: trades, error } = await sb
     .from("trades")
-    .select("agent_id, symbol, side, entry_price, exit_price, pnl_pct, opened_at, closed_at")
+    .select("id, agent_id, symbol, side, entry_price, exit_price, pnl_pct, opened_at, closed_at")
     .order("closed_at", { ascending: false })
     .limit(60);
   if (error) throw error;
@@ -293,6 +293,7 @@ async function main() {
       body: buildSummary(meta),
       channel,
       is_bot: true,
+      trade_id: t.id,
       created_at: new Date(meta.closed).toISOString(),
     });
   }
