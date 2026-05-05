@@ -30,6 +30,7 @@ type Msg = {
   channel: string;
   is_bot: boolean;
   trade_id: string | null;
+  parent_message_id: string | null;
   created_at: string;
 };
 
@@ -268,12 +269,118 @@ export default function Chat({
       >
         {msgs.length === 0 && (
           <div className="text-center text-[var(--fg-3)] mt-10 text-[14px]">
-            {fixedMode === "ai"
+            {fixedMode === "intel" || fixedMode === "ai"
               ? "곧 새로운 시장 알림이 도착합니다…"
-              : "첫 메시지를 남겨보세요."}
+              : fixedMode === "agent"
+                ? "AI들이 곧 토론을 시작합니다…"
+                : "첫 메시지를 남겨보세요."}
           </div>
         )}
-        {msgs.map((m) => {
+        {fixedMode === "agent" &&
+          (() => {
+            // Build threads: intel as parent, agents as children
+            const intels = msgs.filter((m) => m.channel === "intel");
+            const agentsByParent = new Map<string, Msg[]>();
+            for (const a of msgs.filter((m) => m.channel === "agent")) {
+              if (!a.parent_message_id) continue;
+              const arr = agentsByParent.get(a.parent_message_id) ?? [];
+              arr.push(a);
+              agentsByParent.set(a.parent_message_id, arr);
+            }
+            for (const list of agentsByParent.values()) {
+              list.sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime(),
+              );
+            }
+            const threads = intels
+              .map((intel) => ({
+                intel,
+                replies: agentsByParent.get(intel.id) ?? [],
+              }))
+              .filter((t) => t.replies.length > 0)
+              .sort(
+                (a, b) =>
+                  new Date(a.intel.created_at).getTime() -
+                  new Date(b.intel.created_at).getTime(),
+              );
+
+            return threads.map((t) => {
+              const intel = t.intel;
+              const dotColor = intelBotColor(intel.display_name ?? "");
+              const { headline, detail } = parseBotBody(intel.body);
+              return (
+                <div
+                  key={intel.id}
+                  className="mb-3 px-3.5 py-3 rounded-md border border-[var(--border)] bg-[var(--bg)]"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: dotColor }}
+                    />
+                    <span className="text-[12px] font-bold text-[var(--fg-2)]">
+                      {intel.display_name}
+                    </span>
+                    <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
+                      {fmtTime(intel.created_at)}
+                    </span>
+                  </div>
+                  <div className="text-[14px] font-bold leading-snug">
+                    {colorize(headline)}
+                  </div>
+                  {detail && (
+                    <div className="text-[12px] text-[var(--fg-3)] mt-0.5 leading-snug">
+                      {colorize(detail.split("\n")[0])}
+                    </div>
+                  )}
+                  <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] space-y-2.5">
+                    {t.replies.map((r) => {
+                      const winRate = winRates[r.display_name ?? ""];
+                      return (
+                        <div key={r.id} className="flex gap-2.5">
+                          <span className="rounded-full overflow-hidden shrink-0 mt-0.5">
+                            <AgentLogo
+                              displayName={r.display_name ?? ""}
+                              size={22}
+                            />
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-1.5 mb-0.5 flex-wrap">
+                              <span className="text-[13px] font-bold">
+                                {r.display_name}
+                              </span>
+                              {typeof winRate === "number" && winRate > 0 && (
+                                <span
+                                  className={`text-[10px] font-bold num px-1.5 py-px rounded ${
+                                    winRate >= 60
+                                      ? "up bg-[rgba(200,74,49,0.10)]"
+                                      : winRate >= 50
+                                        ? "text-[var(--fg-2)] bg-[var(--bg-3)]"
+                                        : "down bg-[rgba(18,97,196,0.10)]"
+                                  }`}
+                                >
+                                  승률 {winRate.toFixed(0)}%
+                                </span>
+                              )}
+                              <span className="text-[var(--fg-3)] num text-[11px]">
+                                {fmtTime(r.created_at)}
+                              </span>
+                            </div>
+                            <div className="text-[13px] text-[var(--fg)] leading-relaxed">
+                              {colorize(r.body)}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            });
+          })()}
+        {fixedMode !== "agent" && msgs.map((m) => {
           if (!m.is_bot) {
             return (
               <div

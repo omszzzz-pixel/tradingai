@@ -2,6 +2,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config();
 
+import { randomUUID } from "node:crypto";
 import { supabaseService } from "../lib/supabase";
 
 const USER_NAMES = [
@@ -466,7 +467,7 @@ Q1 시행 예정
 
   // Spread market intel messages over the last 48 hours.
   // Each bot posts ~6-10 messages, randomly distributed.
-  const intelTimestamps: number[] = [];
+  const intelMessages: { id: string; at: number }[] = [];
   for (const bot of MARKET_BOTS) {
     const count = 6 + Math.floor(Math.random() * 4);
     const used = new Set<number>();
@@ -480,8 +481,10 @@ Q1 시행 예정
       used.add(idx);
       const ageMs = Math.random() * 48 * 3600_000;
       const at = Date.now() - ageMs;
-      intelTimestamps.push(at);
+      const id = randomUUID();
+      intelMessages.push({ id, at });
       rows.push({
+        id,
         display_name: bot.name,
         body: bot.messages[idx],
         channel: "intel",
@@ -570,19 +573,21 @@ Q1 시행 예정
     return a;
   }
 
-  for (const intelAt of intelTimestamps) {
+  for (const intel of intelMessages) {
     const replyCount = 2 + Math.floor(Math.random() * 2); // 2~3
     const picked = shuffle(agentNames).slice(0, replyCount);
     for (let i = 0; i < picked.length; i++) {
       const agent = picked[i];
       const offsetSec = 30 + Math.random() * 270 + i * 30;
-      const replyAt = intelAt + offsetSec * 1000;
+      const replyAt = intel.at + offsetSec * 1000;
       const reply = pick(AGENT_REPLIES[agent]);
       rows.push({
+        id: randomUUID(),
         display_name: agent,
         body: reply,
         channel: "agent",
         is_bot: true,
+        parent_message_id: intel.id,
         created_at: new Date(replyAt).toISOString(),
       });
     }

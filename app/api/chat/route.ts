@@ -15,12 +15,14 @@ export async function GET(req: Request) {
   const sb = supabaseService();
   let q = sb
     .from("messages")
-    .select("id, display_name, body, channel, is_bot, trade_id, created_at")
+    .select(
+      "id, display_name, body, channel, is_bot, trade_id, parent_message_id, created_at",
+    )
     .order("created_at", { ascending: false })
-    .limit(80);
+    .limit(120);
 
   if (mode === "intel") q = q.eq("channel", "intel");
-  else if (mode === "agent") q = q.eq("channel", "agent");
+  else if (mode === "agent") q = q.in("channel", ["intel", "agent"]);
   else if (mode === "general") q = q.eq("is_bot", false);
   else if (mode === "ai") q = q.eq("is_bot", true); // legacy fallback
 
