@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Chart from "./Chart";
 import TradesPanel from "./TradesPanel";
-import Chat from "./Chat";
-import Ticker from "./Ticker";
-import ActivityTicker from "./ActivityTicker";
 import SymbolSwitcher from "./SymbolSwitcher";
+import AgentLogo from "./AgentLogo";
 import { DEFAULT_SYMBOL, type SymbolId } from "@/lib/symbols";
 
-type Tab = "main" | "chat";
+type Stats = {
+  return_pct: number;
+  win_rate: number;
+  trades: number;
+  balance: number;
+};
+
+function fmtKrw(n: number): string {
+  return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 }).format(n);
+}
 
 export default function AgentView({
   agentId,
@@ -23,102 +29,103 @@ export default function AgentView({
   model: string;
   style: "scalp" | "swing";
 }) {
-  const [tab, setTab] = useState<Tab>("main");
   const [symbol, setSymbol] = useState<SymbolId>(DEFAULT_SYMBOL);
+  const [stats, setStats] = useState<Stats | null>(null);
 
-  const breadcrumb = (
-    <div className="flex items-center gap-2 text-[13px] shrink-0">
-      <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
-        ← 리더보드
-      </Link>
-      <span className="text-[var(--fg-3)]">/</span>
-      <span className="font-semibold">{displayName}</span>
-      <span className="chip">
-        {model} · {style === "scalp" ? "단타" : "스윙"}
-      </span>
-    </div>
-  );
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/leaderboard")
+      .then((r) => r.json())
+      .then((j: { rows: { id: string } & Stats[] }) => {
+        const row = (j.rows as unknown as ({ id: string } & Stats)[]).find(
+          (r) => r.id === agentId,
+        );
+        if (!cancelled && row) setStats(row);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [agentId]);
+
+  const cls = (stats?.return_pct ?? 0) >= 0 ? "up" : "down";
+  const sign = (stats?.return_pct ?? 0) >= 0 ? "+" : "";
 
   return (
-    <>
-      {/* Desktop */}
-      <div className="hidden lg:flex lg:flex-col lg:h-full max-w-[1400px] mx-auto w-full px-4 py-3 gap-3 overflow-hidden">
-        {breadcrumb}
-        <div className="shrink-0">
-          <SymbolSwitcher selected={symbol} onChange={setSymbol} />
-        </div>
-        <div className="shrink-0 -mt-3">
-          <Ticker symbol={symbol} />
-          <ActivityTicker symbol={symbol} />
-        </div>
-        <div className="flex-1 grid grid-cols-[3fr_1fr] grid-rows-[3fr_2fr] gap-3 min-h-0">
-          <div className="min-h-0 min-w-0">
-            <Chart agentId={agentId} symbol={symbol} />
-          </div>
-          <div className="min-h-0 min-w-0 row-span-2">
-            <Chat />
-          </div>
-          <div className="min-h-0 min-w-0">
-            <TradesPanel agentId={agentId} symbol={symbol} />
-          </div>
-        </div>
+    <div className="lg:h-full lg:overflow-y-auto">
+      <div className="max-w-[1100px] mx-auto px-3 sm:px-4 py-4">
+      <div className="flex items-center gap-2 mb-3 text-[13px]">
+        <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
+          ← 피드
+        </Link>
+        <span className="text-[var(--fg-3)]">/</span>
+        <span className="font-semibold">AI 매매내역</span>
       </div>
 
-      {/* Mobile */}
-      <div className="lg:hidden">
-        <div
-          className={
-            tab === "chat"
-              ? "hidden"
-              : "max-w-[1400px] mx-auto px-3 sm:px-4 py-4 pb-20"
-          }
-        >
-          {breadcrumb}
-          <div className="mt-3">
-            <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+      {/* Agent header card */}
+      <div className="panel p-5 mb-4">
+        <div className="flex items-start gap-4 flex-wrap">
+          <div className="rounded-full overflow-hidden shrink-0">
+            <AgentLogo agentId={agentId} size={56} />
           </div>
-          <Ticker symbol={symbol} />
-          <ActivityTicker symbol={symbol} />
-          <Chart agentId={agentId} symbol={symbol} />
-          <div className="mt-3">
-            <TradesPanel agentId={agentId} symbol={symbol} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h1 className="text-[20px] font-bold">{displayName}</h1>
+              <span className="chip">{model}</span>
+              <span className="chip">{style === "scalp" ? "단타" : "스윙"}</span>
+            </div>
+            <div className="text-[13px] text-[var(--fg-3)]">
+              AI 트레이더 매매 기록 (페이퍼 트레이딩)
+            </div>
           </div>
         </div>
-        <div
-          className={
-            tab === "chat"
-              ? "fixed inset-x-0 top-14 bottom-[50px] flex p-3"
-              : "hidden"
-          }
-        >
-          <div className="flex-1 min-h-0 flex">
-            <Chat />
+
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-5 pt-4 border-t border-[var(--border)]">
+            <Stat
+              label="누적 수익률"
+              value={`${sign}${stats.return_pct.toFixed(2)}%`}
+              colorCls={cls}
+            />
+            <Stat label="잔고" value={`${fmtKrw(stats.balance)} KRW`} />
+            <Stat label="승률" value={`${stats.win_rate.toFixed(1)}%`} />
+            <Stat label="누적 매매" value={`${stats.trades}건`} />
           </div>
-        </div>
+        )}
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[var(--bg-2)] border-t border-[var(--border)] flex">
-        <button
-          onClick={() => setTab("main")}
-          className={`flex-1 py-3.5 text-[14px] ${
-            tab === "main"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
-              : "text-[var(--fg-3)] font-medium"
-          }`}
-        >
-          홈
-        </button>
-        <button
-          onClick={() => setTab("chat")}
-          className={`flex-1 py-3.5 text-[14px] ${
-            tab === "chat"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
-              : "text-[var(--fg-3)] font-medium"
-          }`}
-        >
-          채팅
-        </button>
-      </nav>
-    </>
+      {/* Symbol filter */}
+      <div className="mb-3">
+        <SymbolSwitcher selected={symbol} onChange={setSymbol} />
+      </div>
+
+      {/* Trades panel — primary content */}
+      <TradesPanel agentId={agentId} symbol={symbol} />
+
+      <div className="text-[11px] text-[var(--fg-3)] mt-4 leading-relaxed">
+        ※ 페이퍼 트레이딩 결과입니다. 매매 결정의 책임은 본인에게 있으며,
+        본 사이트는 투자 추천이 아닌 관찰·교육 목적입니다.
+      </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  colorCls,
+}: {
+  label: string;
+  value: string;
+  colorCls?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] text-[var(--fg-3)] mb-0.5">{label}</div>
+      <div className={`num text-[15px] font-bold ${colorCls ?? ""}`}>
+        {value}
+      </div>
+    </div>
   );
 }

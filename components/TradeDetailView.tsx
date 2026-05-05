@@ -157,7 +157,8 @@ export default function TradeDetailView({ id }: { id: string }) {
   );
 
   return (
-    <div className="max-w-[1100px] mx-auto px-3 sm:px-4 py-4 pb-12">
+    <div className="lg:h-full lg:overflow-y-auto">
+      <div className="max-w-[1100px] mx-auto px-3 sm:px-4 py-4 pb-12">
       {/* Breadcrumb + prev/next */}
       <div className="flex items-center justify-between gap-3 mb-3 text-[13px] flex-wrap">
         <div className="flex items-center gap-2">
@@ -528,6 +529,7 @@ export default function TradeDetailView({ id }: { id: string }) {
         ※ 본 페이지는 청산 완료된 페이퍼 트레이딩의 사후 분석입니다. 시장 데이터(호가창,
         펀딩비, OI 등)는 진입 시점 스냅샷으로, 현재 시장과 무관합니다. 투자 추천이
         아니며 학습/관찰 목적입니다.
+      </div>
       </div>
     </div>
   );

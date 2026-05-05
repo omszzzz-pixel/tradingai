@@ -71,6 +71,11 @@ function colorize(text: string): React.ReactNode[] {
 
 type Stance = "long" | "short" | "neutral" | null;
 
+function extractSymbol(text: string): string | null {
+  const m = text.match(/\b(BTC|ETH|SOL|XRP)(?:USDT)?\b/);
+  return m ? m[1] : null;
+}
+
 function parseStance(body: string): { stance: Stance; rest: string } {
   const m = body.match(/^(▲ 롱 우위|▼ 숏 우위|● 관망)([\s\S]*)$/);
   if (!m) return { stance: null, rest: body };
@@ -310,12 +315,18 @@ export default function Chat({
               const intel = t.intel;
               const dotColor = intelBotColor(intel.display_name ?? "");
               const { headline, detail } = parseBotBody(intel.body);
+              const sym = extractSymbol(intel.body);
               return (
                 <div
                   key={intel.id}
                   className="mb-3 px-3.5 py-3 rounded-md border border-[var(--border)] bg-[var(--bg)]"
                 >
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {sym && (
+                      <span className="text-[13px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-white shrink-0">
+                        {sym}
+                      </span>
+                    )}
                     <span
                       className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ background: dotColor }}
@@ -434,24 +445,31 @@ export default function Chat({
                       else if (stance === "short") s++;
                       else n++;
                     }
-                    const total = l + s + n;
-                    const majority =
-                      l > s && l > n
-                        ? { label: "롱 우위", cls: "up" }
-                        : s > l && s > n
-                          ? { label: "숏 우위", cls: "down" }
-                          : { label: "관망 우위", cls: "text-[var(--fg-2)]" };
+                    const isLong = l > s && l > n;
+                    const isShort = s > l && s > n;
+                    const majority = isLong
+                      ? { label: "▲ 롱 우위", cls: "up", bg: "rgba(200,74,49,0.10)" }
+                      : isShort
+                        ? { label: "▼ 숏 우위", cls: "down", bg: "rgba(18,97,196,0.10)" }
+                        : { label: "● 관망 우위", cls: "text-[var(--fg-2)]", bg: "var(--bg-3)" };
                     return (
-                      <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] flex items-center gap-2 text-[12px]">
-                        <span className="text-[11px] font-bold text-[var(--fg-3)]">
-                          💡 종합
-                        </span>
-                        <span className={`font-bold ${majority.cls}`}>
-                          {majority.label}
-                        </span>
-                        <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
-                          롱 {l} · 숏 {s} · 관망 {n}
-                        </span>
+                      <div
+                        className="mt-3 -mx-3.5 -mb-3 px-3.5 py-2.5 rounded-b-md border-t border-[var(--border)]"
+                        style={{ background: majority.bg }}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-[10px] font-bold text-[var(--fg-3)] uppercase">
+                              AI 종합 의견
+                            </span>
+                            <span className={`text-[15px] font-bold ${majority.cls}`}>
+                              {majority.label}
+                            </span>
+                          </div>
+                          <span className="num text-[11px] text-[var(--fg-2)] font-medium">
+                            롱 {l} · 숏 {s} · 관망 {n}
+                          </span>
+                        </div>
                       </div>
                     );
                   })()}

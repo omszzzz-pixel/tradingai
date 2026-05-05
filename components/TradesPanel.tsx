@@ -153,8 +153,6 @@ export default function TradesPanel({
               <th>방향</th>
               <th>진입가</th>
               <th>청산가</th>
-              <th>수량</th>
-              <th>손익(KRW)</th>
               <th>수익률</th>
               <th></th>
             </tr>
@@ -163,7 +161,7 @@ export default function TradesPanel({
             {data.trades.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={6}
                   className="text-center py-12 text-[var(--fg-3)] text-[13px]"
                 >
                   아직 매매내역이 없습니다.
@@ -176,8 +174,8 @@ export default function TradesPanel({
               const cls = pnl >= 0 ? "up" : "down";
               return (
                 <Fragment key={t.id}>
-                  <tr>
-                    <td className="text-[var(--fg-2)]">
+                  <tr className="!border-b-0">
+                    <td className="text-[var(--fg-2)] !pb-1">
                       {t.closed_at ? (
                         <>
                           <div className="text-[12px] font-medium text-[var(--fg)]">
@@ -191,26 +189,40 @@ export default function TradesPanel({
                         "—"
                       )}
                     </td>
-                    <td className={`font-semibold ${t.side === "long" ? "up" : "down"}`}>
+                    <td
+                      className={`font-semibold !pb-1 ${t.side === "long" ? "up" : "down"}`}
+                    >
                       {t.side === "long" ? "롱" : "숏"}
                     </td>
-                    <td>{fmtPrice(t.entry_price)}</td>
-                    <td>{t.exit_price !== null ? fmtPrice(t.exit_price) : "—"}</td>
-                    <td className="text-[var(--fg-2)]">{t.size.toFixed(4)}</td>
-                    <td className={`font-medium ${cls}`}>
-                      {pnl >= 0 ? "+" : ""}
-                      {fmtKrw(pnl)}
+                    <td className="!pb-1">{fmtPrice(t.entry_price)}</td>
+                    <td className="!pb-1">
+                      {t.exit_price !== null ? fmtPrice(t.exit_price) : "—"}
                     </td>
-                    <td className={`font-semibold ${cls}`}>{fmtPct(pct)}</td>
-                    <td className="!text-left">
+                    <td className={`font-semibold !pb-1 ${cls}`}>
+                      {fmtPct(pct)}
+                    </td>
+                    <td className="!text-left !pb-1">
                       <Link
                         href={`/trades/${t.id}`}
-                        className="text-[11px] text-[var(--accent)] hover:underline whitespace-nowrap font-medium"
+                        className="text-[11px] text-[var(--accent)] hover:underline whitespace-nowrap font-semibold"
                       >
                         분석 →
                       </Link>
                     </td>
                   </tr>
+                  {t.reasoning && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="!text-left !pt-0 !pb-2.5 text-[12px] text-[var(--fg-2)] leading-relaxed"
+                      >
+                        <span className="text-[var(--fg-3)] font-medium mr-1">
+                          근거 ·
+                        </span>
+                        {t.reasoning}
+                      </td>
+                    </tr>
+                  )}
                 </Fragment>
               );
             })}
