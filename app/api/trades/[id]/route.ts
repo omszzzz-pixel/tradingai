@@ -154,6 +154,49 @@ export async function GET(
     trade.side as "long" | "short",
   );
 
+  const RELATED_FIELDS =
+    "id, agent_id, symbol, side, entry_price, exit_price, pnl_pct, closed_at";
+
+  const [prevRes, nextRes, sameAgentRes, sameSymbolRes, allRecentRes] =
+    await Promise.all([
+      sb
+        .from("trades")
+        .select(RELATED_FIELDS)
+        .eq("agent_id", trade.agent_id)
+        .lt("closed_at", trade.closed_at)
+        .order("closed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      sb
+        .from("trades")
+        .select(RELATED_FIELDS)
+        .eq("agent_id", trade.agent_id)
+        .gt("closed_at", trade.closed_at)
+        .order("closed_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+      sb
+        .from("trades")
+        .select(RELATED_FIELDS)
+        .eq("agent_id", trade.agent_id)
+        .neq("id", trade.id)
+        .order("closed_at", { ascending: false })
+        .limit(8),
+      sb
+        .from("trades")
+        .select(RELATED_FIELDS)
+        .eq("symbol", trade.symbol)
+        .neq("id", trade.id)
+        .order("closed_at", { ascending: false })
+        .limit(8),
+      sb
+        .from("trades")
+        .select(RELATED_FIELDS)
+        .neq("id", trade.id)
+        .order("closed_at", { ascending: false })
+        .limit(8),
+    ]);
+
   return NextResponse.json({
     trade: {
       id: trade.id,
@@ -173,5 +216,12 @@ export async function GET(
     close_reasoning: closeDec?.reasoning ?? null,
     snapshot,
     other_agents: otherAgents,
+    prev: prevRes.data ?? null,
+    next: nextRes.data ?? null,
+    related: {
+      sameAgent: sameAgentRes.data ?? [],
+      sameSymbol: sameSymbolRes.data ?? [],
+      all: allRecentRes.data ?? [],
+    },
   });
 }
