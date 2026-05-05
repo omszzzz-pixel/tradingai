@@ -154,7 +154,7 @@ export default function Chat() {
                 {fmtTime(m.created_at)}
               </span>
             </div>
-            <div className="text-[13px] text-[var(--fg)] pl-0.5">
+            <div className="text-[13px] text-[var(--fg)] pl-0.5 whitespace-pre-line">
               {m.body}
             </div>
           </div>

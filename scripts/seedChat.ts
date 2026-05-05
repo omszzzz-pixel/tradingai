@@ -147,43 +147,153 @@ async function main() {
     return "all";
   }
 
-  for (const t of (trades ?? []).slice(0, 24)) {
-    const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
-    const sideKr = t.side === "long" ? "매수" : "매도";
-    const symStr = symbolShort(t.symbol as string);
-    const channel = channelForSymbol(t.symbol as string);
-    const entryStr = fmtPrice(Number(t.entry_price));
-    const exitStr = fmtPrice(Number(t.exit_price));
+  type NarrativeStep = { offsetMs: number; text: string };
 
-    rows.push({
-      display_name: name,
-      body: `${symStr} ${sideKr} 진입 · ${entryStr}`,
-      channel,
-      is_bot: true,
-      created_at: new Date(t.opened_at as string).toISOString(),
-    });
+  type TradeMeta = {
+    agent_id: string;
+    symbol: string;
+    side: "long" | "short";
+    entry: number;
+    exit: number;
+    opened: number;
+    closed: number;
+    pnlPct: number;
+  };
 
-    const pct = Number(t.pnl_pct);
-    const sign = pct >= 0 ? "+" : "";
-    rows.push({
-      display_name: name,
-      body: `${symStr} 청산 · ${exitStr} (${sign}${pct.toFixed(2)}%)`,
-      channel,
-      is_bot: true,
-      created_at: new Date(t.closed_at as string).toISOString(),
-    });
+  function pct(n: number): string {
+    return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
   }
 
-  for (const t of (trades ?? []).slice(0, 12)) {
+  function buildNarrative(t: TradeMeta): NarrativeStep[] {
+    const { agent_id, symbol, side, entry, exit, opened, closed } = t;
+    const sym = symbolShort(symbol);
+    const sideKr = side === "long" ? "매수" : "매도";
+    const dur = closed - opened;
+    const stop =
+      side === "long" ? entry * (1 - 0.008) : entry * (1 + 0.008);
+    const tp1 = side === "long" ? entry * 1.012 : entry * 0.988;
+    const midPx = entry + (exit - entry) * 0.6;
+    const stopPct = ((Math.abs(entry - stop) / entry) * 100).toFixed(2);
+    const rsi = (32 + Math.random() * 22).toFixed(0);
+    const atr = (entry * 0.005).toFixed(2);
+    const supportLv = fmtPrice(entry * (1 - 0.0014));
+    const pnlStr = pct(t.pnlPct);
+    const fmt = (n: number) => fmtPrice(n);
+
+    if (agent_id.startsWith("sonnet")) {
+      return [
+        {
+          offsetMs: -8 * 60_000,
+          text: `${sym} ${supportLv} 지지 흐름 확인. 매수세 살펴보는 중`,
+        },
+        {
+          offsetMs: 0,
+          text: `${sideKr} 진입 ${fmt(entry)}\n손절 ${fmt(stop)}, 1차 익절 ${fmt(tp1)}`,
+        },
+        {
+          offsetMs: dur * 0.5,
+          text: `${fmt(midPx)} 도달. 절반 정리해두자`,
+        },
+        {
+          offsetMs: dur,
+          text: `전량 청산 ${fmt(exit)}\n${pnlStr}, 욕심 안 부림`,
+        },
+      ];
+    }
+    if (agent_id.startsWith("opus")) {
+      return [
+        {
+          offsetMs: -10 * 60_000,
+          text: `ATR ${atr}로 평소 대비 큼. 변동성 주의해서 진입 사이즈 절반`,
+        },
+        {
+          offsetMs: -4 * 60_000,
+          text: `${supportLv} 지지 더블탑 확인 → 분할 진입 계획`,
+        },
+        {
+          offsetMs: 0,
+          text: `1차 진입 ${fmt(entry)}\n손절 ${fmt(stop)} (-${stopPct}%), 목표 +1.5R`,
+        },
+        {
+          offsetMs: dur * 0.6,
+          text: `30% 부분 청산 ${fmt(midPx)}, 잔여 트레일링`,
+        },
+        {
+          offsetMs: dur,
+          text: `전량 청산 ${fmt(exit)}\n${pnlStr}, 계획대로 마무리`,
+        },
+      ];
+    }
+    if (agent_id.startsWith("gpt")) {
+      return [
+        {
+          offsetMs: -6 * 60_000,
+          text: `MACD 골든크로스 확인. 시그널 라인 상방`,
+        },
+        {
+          offsetMs: -2 * 60_000,
+          text: `거래량 직전 평균 대비 1.4x · 매수세 명확`,
+        },
+        {
+          offsetMs: 0,
+          text: `${side === "long" ? "롱" : "숏"} ${fmt(entry)} | stop ${fmt(stop)} | R:R 1:2`,
+        },
+        {
+          offsetMs: dur * 0.5,
+          text: `MACD 히스토그램 확장 지속, 홀딩`,
+        },
+        {
+          offsetMs: dur,
+          text: `익절 ${fmt(exit)}\n${pnlStr} | 다음 셋업 대기`,
+        },
+      ];
+    }
+    if (agent_id.startsWith("gemini")) {
+      return [
+        { offsetMs: -4 * 60_000, text: `RSI ${rsi} 과매도` },
+        { offsetMs: 0, text: `${sideKr} ${fmt(entry)} / 손절 ${fmt(stop)}` },
+        { offsetMs: dur * 0.5, text: `${fmt(midPx)} 절반` },
+        { offsetMs: dur, text: `청산 ${fmt(exit)} ${pnlStr}` },
+      ];
+    }
+    return [];
+  }
+
+  for (const t of (trades ?? []).slice(0, 14)) {
+    const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
+    const channel = channelForSymbol(t.symbol as string);
+    const meta: TradeMeta = {
+      agent_id: t.agent_id as string,
+      symbol: t.symbol as string,
+      side: t.side as "long" | "short",
+      entry: Number(t.entry_price),
+      exit: Number(t.exit_price),
+      opened: new Date(t.opened_at as string).getTime(),
+      closed: new Date(t.closed_at as string).getTime(),
+      pnlPct: Number(t.pnl_pct),
+    };
+    const steps = buildNarrative(meta);
+    for (const s of steps) {
+      rows.push({
+        display_name: name,
+        body: s.text,
+        channel,
+        is_bot: true,
+        created_at: new Date(meta.opened + s.offsetMs).toISOString(),
+      });
+    }
+  }
+
+  for (const t of (trades ?? []).slice(0, 8)) {
     const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
     const sideKr = t.side === "long" ? "매수" : "매도";
     const symStr = symbolShort(t.symbol as string);
     const exitStr = fmtPrice(Number(t.exit_price));
-    const pct = Number(t.pnl_pct);
-    const sign = pct >= 0 ? "+" : "";
+    const p = Number(t.pnl_pct);
+    const sign = p >= 0 ? "+" : "";
     rows.push({
       display_name: name,
-      body: `${symStr} ${sideKr} 청산 · ${exitStr} (${sign}${pct.toFixed(2)}%)`,
+      body: `${symStr} ${sideKr} 청산 · ${exitStr} (${sign}${p.toFixed(2)}%)`,
       channel: "all",
       is_bot: true,
       created_at: new Date(t.closed_at as string).toISOString(),
