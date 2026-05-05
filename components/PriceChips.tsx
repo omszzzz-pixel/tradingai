@@ -55,20 +55,20 @@ export default function PriceChips() {
   }, []);
 
   return (
-    <div className="flex items-center gap-x-6 gap-y-1.5 flex-wrap px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-2)] overflow-x-auto">
+    <div className="flex items-center gap-x-7 gap-y-2 flex-wrap px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)] overflow-x-auto">
       {SYMBOLS.map((c) => {
         const s = stats[c.id];
         const isUp = (s?.pct ?? 0) >= 0;
         const cls = isUp ? "up" : "down";
         const arrow = isUp ? "▲" : "▼";
         return (
-          <div key={c.id} className="flex items-baseline gap-1.5 shrink-0">
-            <span className="text-[13px] font-bold">{c.short}</span>
-            <span className={`num text-[14px] font-semibold ${cls}`}>
+          <div key={c.id} className="flex items-baseline gap-2 shrink-0">
+            <span className="text-[14px] font-bold">{c.short}</span>
+            <span className={`num text-[16px] font-semibold ${cls}`}>
               {s ? fmtPrice(s.lastPrice) : "—"}
             </span>
             {s && (
-              <span className={`num text-[11px] font-medium ${cls}`}>
+              <span className={`num text-[13px] font-medium ${cls}`}>
                 {arrow} {Math.abs(s.pct).toFixed(2)}%
               </span>
             )}

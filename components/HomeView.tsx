@@ -30,7 +30,7 @@ export default function HomeView() {
         <div
           className={
             tab === "feed"
-              ? "fixed inset-x-0 top-[112px] bottom-[50px] flex"
+              ? "fixed inset-x-0 top-[120px] bottom-[50px] flex"
               : "hidden"
           }
         >
@@ -41,7 +41,7 @@ export default function HomeView() {
         <div
           className={
             tab === "community"
-              ? "fixed inset-x-0 top-[112px] bottom-[50px] flex"
+              ? "fixed inset-x-0 top-[120px] bottom-[50px] flex"
               : "hidden"
           }
         >

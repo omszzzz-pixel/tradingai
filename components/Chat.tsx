@@ -204,16 +204,16 @@ export default function Chat({
       className={`flex flex-col h-full min-h-0 w-full ${fixedMode ? "" : "panel"}`}
     >
       {fixedMode ? (
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
           {fixedMode === "ai" ? (
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
           ) : (
-            <span className="text-[14px]">💬</span>
+            <span className="text-[16px]">💬</span>
           )}
-          <span className="text-[13px] font-bold">{title ?? (fixedMode === "ai" ? "AI 정보 피드" : "커뮤니티")}</span>
+          <span className="text-[15px] font-bold">{title ?? (fixedMode === "ai" ? "AI 정보 피드" : "커뮤니티")}</span>
         </div>
       ) : (
         <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
@@ -230,11 +230,13 @@ export default function Chat({
       )}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto px-3 py-2.5 text-[13px]"
+        className="flex-1 overflow-y-auto px-3 py-3"
       >
         {msgs.length === 0 && (
-          <div className="text-center text-[var(--fg-3)] mt-10 text-[13px]">
-            첫 메시지를 남겨보세요.
+          <div className="text-center text-[var(--fg-3)] mt-10 text-[14px]">
+            {fixedMode === "ai"
+              ? "곧 새로운 시장 알림이 도착합니다…"
+              : "첫 메시지를 남겨보세요."}
           </div>
         )}
         {msgs.map((m) => {
@@ -242,17 +244,17 @@ export default function Chat({
             return (
               <div
                 key={m.id}
-                className="mb-2.5 leading-snug break-words"
+                className="mb-3 leading-snug break-words"
               >
-                <div className="flex items-baseline gap-1.5 mb-0.5">
-                  <span className="text-[12px] font-semibold text-[var(--fg-2)]">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-[14px] font-semibold text-[var(--fg-2)]">
                     {m.display_name ?? "익명"}
                   </span>
-                  <span className="text-[var(--fg-3)] num text-[11px]">
+                  <span className="text-[var(--fg-3)] num text-[12px]">
                     {fmtTime(m.created_at)}
                   </span>
                 </div>
-                <div className="text-[13px] text-[var(--fg)] pl-0.5">
+                <div className="text-[15px] text-[var(--fg)] pl-0.5 leading-relaxed">
                   {m.body}
                 </div>
               </div>
@@ -268,46 +270,46 @@ export default function Chat({
           return (
             <div
               key={m.id}
-              className="mb-2 px-3 py-2.5 rounded-md border border-[var(--border)] hover:border-[var(--border-strong)] bg-[var(--bg)] transition-colors"
+              className="mb-2.5 px-3.5 py-3 rounded-md border border-[var(--border)] hover:border-[var(--border-strong)] bg-[var(--bg)] transition-colors"
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
+              <div className="flex items-center gap-2 mb-2">
                 {isAgent ? (
                   <span className="rounded-full overflow-hidden shrink-0">
                     <AgentLogo
                       displayName={m.display_name ?? ""}
-                      size={14}
+                      size={18}
                     />
                   </span>
                 ) : (
                   <span
-                    className="inline-block w-2 h-2 rounded-full shrink-0"
+                    className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ background: dotColor ?? "#6b7280" }}
                   />
                 )}
-                <span className="text-[11px] font-bold text-[var(--fg-2)]">
+                <span className="text-[13px] font-bold text-[var(--fg)]">
                   {m.display_name ?? "익명"}
                 </span>
-                <span className="text-[var(--fg-3)] num text-[10px] ml-auto">
+                <span className="text-[var(--fg-3)] num text-[12px] ml-auto">
                   {fmtTime(m.created_at)}
                 </span>
               </div>
-              <div className="text-[14px] font-bold leading-snug">
+              <div className="text-[16px] font-bold leading-snug">
                 {colorize(headline)}
               </div>
               {detail && (
-                <div className="text-[12px] text-[var(--fg-2)] mt-0.5 leading-snug whitespace-pre-line">
+                <div className="text-[14px] text-[var(--fg-2)] mt-1 leading-snug whitespace-pre-line">
                   {colorize(detail)}
                 </div>
               )}
               {commentary && (
-                <div className="text-[12px] text-[var(--fg-2)] mt-2 pt-2 border-t border-[var(--border)] leading-snug whitespace-pre-line">
+                <div className="text-[14px] text-[var(--fg-2)] mt-2.5 pt-2.5 border-t border-[var(--border)] leading-relaxed whitespace-pre-line">
                   {colorize(commentary)}
                 </div>
               )}
               {m.trade_id && (
                 <Link
                   href={`/trades/${m.trade_id}`}
-                  className="inline-block mt-2 text-[11px] font-semibold text-[var(--accent)] hover:underline"
+                  className="inline-block mt-2.5 text-[13px] font-semibold text-[var(--accent)] hover:underline"
                 >
                   분석 보기 →
                 </Link>
@@ -317,7 +319,7 @@ export default function Chat({
         })}
       </div>
       {!hideInput && mode !== "ai" && (
-        <div className="border-t border-[var(--border)] p-2.5 flex gap-2">
+        <div className="border-t border-[var(--border)] p-3 flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -330,12 +332,12 @@ export default function Chat({
             placeholder={err ? err : "메시지 (로그인 필요)"}
             maxLength={500}
             disabled={sending}
-            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
+            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-[14px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
           />
           <button
             onClick={send}
             disabled={sending || !input.trim()}
-            className="text-[13px] px-3.5 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
+            className="text-[14px] px-4 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
           >
             전송
           </button>
