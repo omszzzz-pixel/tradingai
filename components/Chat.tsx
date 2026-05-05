@@ -316,15 +316,20 @@ export default function Chat({
               const dotColor = intelBotColor(intel.display_name ?? "");
               const { headline, detail } = parseBotBody(intel.body);
               const sym = extractSymbol(intel.body);
+              const isCoinSpecific = !!sym;
               return (
                 <div
                   key={intel.id}
                   className="mb-3 px-3.5 py-3 rounded-md border border-[var(--border)] bg-[var(--bg)]"
                 >
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {sym && (
+                    {isCoinSpecific ? (
                       <span className="text-[13px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-white shrink-0">
                         {sym}
+                      </span>
+                    ) : (
+                      <span className="text-[12px] font-bold px-2 py-0.5 rounded bg-[var(--bg-3)] text-[var(--fg-2)] shrink-0">
+                        시장
                       </span>
                     )}
                     <span
@@ -414,11 +419,17 @@ export default function Chat({
                                         : "text-[var(--fg-2)] bg-[var(--bg-3)]"
                                   }`}
                                 >
-                                  {stance === "long"
-                                    ? "▲ 롱"
-                                    : stance === "short"
-                                      ? "▼ 숏"
-                                      : "● 관망"}
+                                  {isCoinSpecific
+                                    ? stance === "long"
+                                      ? "▲ 롱"
+                                      : stance === "short"
+                                        ? "▼ 숏"
+                                        : "● 관망"
+                                    : stance === "long"
+                                      ? "▲ 강세"
+                                      : stance === "short"
+                                        ? "▼ 약세"
+                                        : "● 중립"}
                                 </span>
                               )}
                               <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
@@ -448,10 +459,28 @@ export default function Chat({
                     const isLong = l > s && l > n;
                     const isShort = s > l && s > n;
                     const majority = isLong
-                      ? { label: "▲ 롱 우위", cls: "up", bg: "rgba(200,74,49,0.10)" }
+                      ? {
+                          label: isCoinSpecific ? "▲ 롱 우위" : "▲ 강세 분위기",
+                          cls: "up",
+                          bg: "rgba(200,74,49,0.10)",
+                        }
                       : isShort
-                        ? { label: "▼ 숏 우위", cls: "down", bg: "rgba(18,97,196,0.10)" }
-                        : { label: "● 관망 우위", cls: "text-[var(--fg-2)]", bg: "var(--bg-3)" };
+                        ? {
+                            label: isCoinSpecific ? "▼ 숏 우위" : "▼ 약세 분위기",
+                            cls: "down",
+                            bg: "rgba(18,97,196,0.10)",
+                          }
+                        : {
+                            label: isCoinSpecific ? "● 관망 우위" : "● 중립 분위기",
+                            cls: "text-[var(--fg-2)]",
+                            bg: "var(--bg-3)",
+                          };
+                    const headerLabel = isCoinSpecific
+                      ? "AI 종합 의견"
+                      : "AI 시장 분위기";
+                    const tally = isCoinSpecific
+                      ? `롱 ${l} · 숏 ${s} · 관망 ${n}`
+                      : `강세 ${l} · 약세 ${s} · 중립 ${n}`;
                     return (
                       <div
                         className="mt-3 -mx-3.5 -mb-3 px-3.5 py-2.5 rounded-b-md border-t border-[var(--border)]"
@@ -460,14 +489,14 @@ export default function Chat({
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-baseline gap-2">
                             <span className="text-[10px] font-bold text-[var(--fg-3)] uppercase">
-                              AI 종합 의견
+                              {headerLabel}
                             </span>
                             <span className={`text-[15px] font-bold ${majority.cls}`}>
                               {majority.label}
                             </span>
                           </div>
                           <span className="num text-[11px] text-[var(--fg-2)] font-medium">
-                            롱 {l} · 숏 {s} · 관망 {n}
+                            {tally}
                           </span>
                         </div>
                       </div>
