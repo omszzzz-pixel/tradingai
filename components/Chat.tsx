@@ -35,6 +35,33 @@ function fmtTime(iso: string): string {
   });
 }
 
+function renderBotBody(body: string) {
+  const pattern = /(진입|청산|매수|매도|[+-]\d+\.\d+%)/g;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = pattern.exec(body)) !== null) {
+    if (m.index > last) parts.push(body.slice(last, m.index));
+    const t = m[0];
+    let cls = "";
+    if (t === "진입") cls = "text-emerald-500 font-bold";
+    else if (t === "청산") cls = "text-amber-500 font-bold";
+    else if (t === "매수") cls = "up font-bold";
+    else if (t === "매도") cls = "down font-bold";
+    else if (t.startsWith("+")) cls = "up font-bold";
+    else if (t.startsWith("-")) cls = "down font-bold";
+    parts.push(
+      <span key={key++} className={cls}>
+        {t}
+      </span>,
+    );
+    last = m.index + t.length;
+  }
+  if (last < body.length) parts.push(body.slice(last));
+  return parts;
+}
+
 export default function Chat() {
   const [channel, setChannel] = useState("all");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -155,7 +182,7 @@ export default function Chat() {
               </span>
             </div>
             <div className="text-[13px] text-[var(--fg)] pl-0.5 whitespace-pre-line">
-              {m.body}
+              {m.is_bot ? renderBotBody(m.body) : m.body}
             </div>
           </div>
         ))}
