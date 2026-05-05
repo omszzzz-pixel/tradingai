@@ -510,7 +510,7 @@ ETH 김프 BTC 추격
   }
 
   for (const intel of intelMessages) {
-    const replyCount = 2 + Math.floor(Math.random() * 2); // 2~3
+    const replyCount = 5 + Math.floor(Math.random() * 4); // 5~8
     const picked = shuffle(agentNames).slice(0, replyCount);
     for (let i = 0; i < picked.length; i++) {
       const agent = picked[i];
