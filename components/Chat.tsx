@@ -13,11 +13,9 @@ type Msg = {
   created_at: string;
 };
 
-const CHANNELS: { id: string; label: string }[] = [
-  { id: "all", label: "전체" },
-  { id: "btc", label: "BTC" },
-  { id: "eth", label: "ETH" },
-  { id: "free", label: "자유" },
+const MODES: { id: "ai" | "general"; label: string }[] = [
+  { id: "ai", label: "AI 매매" },
+  { id: "general", label: "일반 채팅" },
 ];
 
 function getBrowserClient() {
@@ -63,7 +61,7 @@ function renderBotBody(body: string) {
 }
 
 export default function Chat() {
-  const [channel, setChannel] = useState("all");
+  const [mode, setMode] = useState<"ai" | "general">("ai");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -73,7 +71,7 @@ export default function Chat() {
   useEffect(() => {
     let cancelled = false;
     setMsgs([]);
-    fetch(`/api/chat?channel=${channel}`)
+    fetch(`/api/chat?mode=${mode}`)
       .then((r) => r.json())
       .then((j: { messages: Msg[] }) => {
         if (!cancelled) setMsgs(j.messages ?? []);
@@ -82,14 +80,14 @@ export default function Chat() {
 
     const sb = getBrowserClient();
     const ch = sb
-      .channel(`chat-${channel}`)
+      .channel(`chat-${mode}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `channel=eq.${channel}`,
+          filter: `is_bot=eq.${mode === "ai"}`,
         },
         (payload) => {
           const m = payload.new as Msg;
@@ -101,7 +99,7 @@ export default function Chat() {
       cancelled = true;
       sb.removeChannel(ch);
     };
-  }, [channel]);
+  }, [mode]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -112,13 +110,17 @@ export default function Chat() {
   async function send() {
     const body = input.trim();
     if (!body) return;
+    if (mode === "ai") {
+      setErr("AI 매매 채널은 읽기 전용입니다");
+      return;
+    }
     setSending(true);
     setErr(null);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ body, channel }),
+        body: JSON.stringify({ body }),
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
@@ -135,11 +137,11 @@ export default function Chat() {
   return (
     <div className="panel flex flex-col h-full min-h-0 w-full">
       <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
-        {CHANNELS.map((c) => (
+        {MODES.map((c) => (
           <button
             key={c.id}
-            onClick={() => setChannel(c.id)}
-            className={`btn-tab ${channel === c.id ? "active" : ""}`}
+            onClick={() => setMode(c.id)}
+            className={`btn-tab ${mode === c.id ? "active" : ""}`}
           >
             {c.label}
           </button>
@@ -197,14 +199,20 @@ export default function Chat() {
               send();
             }
           }}
-          placeholder={err ? err : "메시지 (로그인 필요)"}
+          placeholder={
+            mode === "ai"
+              ? "AI 매매 피드 (읽기 전용)"
+              : err
+                ? err
+                : "메시지 (로그인 필요)"
+          }
           maxLength={500}
-          disabled={sending}
-          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)]"
+          disabled={sending || mode === "ai"}
+          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
         />
         <button
           onClick={send}
-          disabled={sending || !input.trim()}
+          disabled={sending || !input.trim() || mode === "ai"}
           className="text-[13px] px-3.5 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
         >
           전송

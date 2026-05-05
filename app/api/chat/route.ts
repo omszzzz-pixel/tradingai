@@ -7,19 +7,19 @@ export const dynamic = "force-dynamic";
 
 const Body = z.object({
   body: z.string().min(1).max(500),
-  channel: z.enum(["all", "btc", "eth", "free"]).default("all"),
 });
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const channel = searchParams.get("channel") ?? "all";
+  const mode = searchParams.get("mode") ?? "ai";
+  const isBot = mode === "ai";
   const sb = supabaseService();
   const { data, error } = await sb
     .from("messages")
     .select("id, display_name, body, channel, is_bot, created_at")
-    .eq("channel", channel)
+    .eq("is_bot", isBot)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(80);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -41,7 +41,8 @@ export async function POST(req: Request) {
     user_id: user.id,
     display_name: display,
     body: parsed.data.body,
-    channel: parsed.data.channel,
+    channel: "general",
+    is_bot: false,
   });
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Fragment } from "react";
+import Link from "next/link";
 import { fmtPrice, symbolShort } from "@/lib/symbols";
 import AgentLogo from "./AgentLogo";
 
@@ -66,7 +67,6 @@ export default function TradesPanel({
 }) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [openRow, setOpenRow] = useState<string | null>(null);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -156,14 +156,14 @@ export default function TradesPanel({
               <th>수량</th>
               <th>손익(KRW)</th>
               <th>수익률</th>
-              {data.paywall.unlocked && <th className="!text-left">근거</th>}
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {data.trades.length === 0 && (
               <tr>
                 <td
-                  colSpan={data.paywall.unlocked ? 8 : 7}
+                  colSpan={8}
                   className="text-center py-12 text-[var(--fg-3)] text-[13px]"
                 >
                   아직 매매내역이 없습니다.
@@ -174,16 +174,9 @@ export default function TradesPanel({
               const pnl = t.pnl ?? 0;
               const pct = t.pnl_pct ?? 0;
               const cls = pnl >= 0 ? "up" : "down";
-              const isOpen = openRow === t.id;
-              const clickable = data.paywall.unlocked && !!t.reasoning;
               return (
                 <Fragment key={t.id}>
-                  <tr
-                    className={clickable ? "cursor-pointer" : ""}
-                    onClick={() =>
-                      clickable ? setOpenRow(isOpen ? null : t.id) : null
-                    }
-                  >
+                  <tr>
                     <td className="text-[var(--fg-2)]">
                       {t.closed_at ? (
                         <>
@@ -209,28 +202,15 @@ export default function TradesPanel({
                       {fmtKrw(pnl)}
                     </td>
                     <td className={`font-semibold ${cls}`}>{fmtPct(pct)}</td>
-                    {data.paywall.unlocked && (
-                      <td className="!text-left max-w-[260px] truncate text-[12px] text-[var(--fg-2)]">
-                        {t.reasoning ? (
-                          <>
-                            {isOpen ? "▼" : "▶"} {t.reasoning.slice(0, 36)}…
-                          </>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                  {isOpen && t.reasoning && (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="!text-left bg-[var(--bg-soft)] text-[13px] text-[var(--fg-2)] leading-relaxed py-3 px-5"
+                    <td className="!text-left">
+                      <Link
+                        href={`/trades/${t.id}`}
+                        className="text-[11px] text-[var(--accent)] hover:underline whitespace-nowrap font-medium"
                       >
-                        {t.reasoning}
-                      </td>
-                    </tr>
-                  )}
+                        분석 →
+                      </Link>
+                    </td>
+                  </tr>
                 </Fragment>
               );
             })}
