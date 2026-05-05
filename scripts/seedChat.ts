@@ -110,6 +110,7 @@ async function main() {
 
   function addUser(channel: string, body: string, ageDays: number) {
     rows.push({
+      id: randomUUID(),
       display_name: pick(USER_NAMES),
       body,
       channel,
