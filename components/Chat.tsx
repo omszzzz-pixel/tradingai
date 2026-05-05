@@ -304,7 +304,6 @@ export default function Chat({
                 intel,
                 replies: agentsByParent.get(intel.id) ?? [],
               }))
-              .filter((t) => t.replies.length > 0)
               .sort(
                 (a, b) =>
                   new Date(a.intel.created_at).getTime() -
@@ -364,6 +363,7 @@ export default function Chat({
                       {colorize(detail.split("\n")[0])}
                     </div>
                   )}
+                  {t.replies.length > 0 && (
                   <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] space-y-2.5">
                     {t.replies.map((r) => {
                       const winRate = winRates[r.display_name ?? ""];
@@ -446,7 +446,8 @@ export default function Chat({
                       );
                     })}
                   </div>
-                  {(() => {
+                  )}
+                  {t.replies.length > 0 && (() => {
                     let l = 0,
                       s = 0,
                       n = 0;

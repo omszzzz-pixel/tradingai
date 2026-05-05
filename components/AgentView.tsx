@@ -53,7 +53,7 @@ export default function AgentView({
 
   return (
     <div className="lg:h-full lg:overflow-y-auto">
-      <div className="max-w-[1100px] mx-auto px-3 sm:px-4 py-4">
+      <div className="max-w-[1100px] mx-auto px-3 sm:px-4 py-4 pb-16 lg:pb-4">
       <div className="flex items-center gap-2 mb-3 text-[13px]">
         <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
           ← 피드

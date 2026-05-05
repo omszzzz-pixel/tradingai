@@ -100,28 +100,6 @@ export default function DashboardView() {
         </div>
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[var(--bg-2)] border-t border-[var(--border)] flex">
-        <button
-          onClick={() => setTab("main")}
-          className={`flex-1 py-3.5 text-[14px] ${
-            tab === "main"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
-              : "text-[var(--fg-3)] font-medium"
-          }`}
-        >
-          홈
-        </button>
-        <button
-          onClick={() => setTab("chat")}
-          className={`flex-1 py-3.5 text-[14px] ${
-            tab === "chat"
-              ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
-              : "text-[var(--fg-3)] font-medium"
-          }`}
-        >
-          채팅
-        </button>
-      </nav>
     </>
   );
 }

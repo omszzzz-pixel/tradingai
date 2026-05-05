@@ -41,7 +41,7 @@ export default async function BotPage({
 
   return (
     <div className="lg:h-full lg:overflow-y-auto">
-      <div className="max-w-[900px] mx-auto px-3 sm:px-4 py-5">
+      <div className="max-w-[900px] mx-auto px-3 sm:px-4 py-5 pb-20 lg:pb-5">
       <div className="flex items-center gap-2 mb-3 text-[13px]">
         <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
           ← 피드

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MobileNav from "@/components/MobileNav";
 
 export const metadata: Metadata = {
   title: "tradingai — AI 매매 관찰",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <Header />
         <main className="flex-1 lg:min-h-0 lg:overflow-hidden">{children}</main>
         <Footer />
+        <MobileNav />
       </body>
     </html>
   );
