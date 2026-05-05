@@ -10,11 +10,6 @@ export default function MobileNav() {
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[var(--bg-2)] border-t border-[var(--border)] flex">
       <Tab href="/" label="피드" active={pathname === "/"} />
       <Tab
-        href="/dashboard"
-        label="대시보드"
-        active={pathname === "/dashboard"}
-      />
-      <Tab
         href="/leaderboard"
         label="리더보드"
         active={pathname === "/leaderboard"}

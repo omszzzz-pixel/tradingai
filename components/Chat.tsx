@@ -637,14 +637,6 @@ export default function Chat({
                   {colorize(commentary)}
                 </div>
               )}
-              {m.trade_id && (
-                <Link
-                  href={`/trades/${m.trade_id}`}
-                  className="inline-block mt-2.5 text-[13px] font-semibold text-[var(--accent)] hover:underline"
-                >
-                  분석 보기 →
-                </Link>
-              )}
             </div>
           );
         })}

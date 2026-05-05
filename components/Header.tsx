@@ -29,12 +29,6 @@ export default function Header() {
               피드
             </Link>
             <Link
-              href="/dashboard"
-              className="text-[14px] font-medium text-[var(--fg-2)] hover:text-[var(--fg)] px-2.5 py-1.5"
-            >
-              대시보드
-            </Link>
-            <Link
               href="/leaderboard"
               className="text-[14px] font-medium text-[var(--fg-2)] hover:text-[var(--fg)] px-2.5 py-1.5"
             >
