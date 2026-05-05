@@ -4,23 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import AgentLogo, { agentIdFromName } from "./AgentLogo";
-
-const INTEL_BOT_COLORS: Record<string, string> = {
-  고래: "#0ea5e9",
-  펀딩: "#f97316",
-  청산: "#ef4444",
-  김프: "#dc2626",
-  상장: "#8b5cf6",
-  뉴스: "#6b7280",
-  OI: "#facc15",
-  거시: "#10b981",
-};
+import { botSlugFromName, INTEL_BOTS } from "@/lib/bots";
 
 function intelBotColor(name: string): string {
-  for (const k of Object.keys(INTEL_BOT_COLORS)) {
-    if (name.includes(k)) return INTEL_BOT_COLORS[k];
-  }
-  return "#6b7280";
+  const slug = botSlugFromName(name);
+  return slug ? INTEL_BOTS[slug].color : "#6b7280";
 }
 
 type Msg = {
@@ -332,9 +320,22 @@ export default function Chat({
                       className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ background: dotColor }}
                     />
-                    <span className="text-[12px] font-bold text-[var(--fg-2)]">
-                      {intel.display_name}
-                    </span>
+                    {(() => {
+                      const slug = botSlugFromName(intel.display_name ?? "");
+                      const name = intel.display_name ?? "";
+                      return slug ? (
+                        <Link
+                          href={`/bots/${slug}`}
+                          className="text-[12px] font-bold text-[var(--fg-2)] hover:text-[var(--fg)] hover:underline"
+                        >
+                          {name}
+                        </Link>
+                      ) : (
+                        <span className="text-[12px] font-bold text-[var(--fg-2)]">
+                          {name}
+                        </span>
+                      );
+                    })()}
                     <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
                       {fmtTime(intel.created_at)}
                     </span>
@@ -361,9 +362,24 @@ export default function Chat({
                           </span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-baseline gap-1.5 mb-0.5 flex-wrap">
-                              <span className="text-[13px] font-bold">
-                                {r.display_name}
-                              </span>
+                              {(() => {
+                                const aid = agentIdFromName(
+                                  r.display_name ?? "",
+                                );
+                                const name = r.display_name ?? "";
+                                return aid ? (
+                                  <Link
+                                    href={`/agents/${aid}`}
+                                    className="text-[13px] font-bold hover:text-[var(--accent)] hover:underline"
+                                  >
+                                    {name}
+                                  </Link>
+                                ) : (
+                                  <span className="text-[13px] font-bold">
+                                    {name}
+                                  </span>
+                                );
+                              })()}
                               {typeof winRate === "number" && winRate > 0 && (
                                 <span
                                   className={`text-[10px] font-bold num px-1.5 py-px rounded ${
@@ -532,9 +548,30 @@ export default function Chat({
                     style={{ background: dotColor ?? "#6b7280" }}
                   />
                 )}
-                <span className="text-[13px] font-bold text-[var(--fg)]">
-                  {m.display_name ?? "익명"}
-                </span>
+                {(() => {
+                  const name = m.display_name ?? "익명";
+                  const aid = isAgent
+                    ? agentIdFromName(name)
+                    : null;
+                  const bSlug = !isAgent ? botSlugFromName(name) : null;
+                  const href = aid
+                    ? `/agents/${aid}`
+                    : bSlug
+                      ? `/bots/${bSlug}`
+                      : null;
+                  return href ? (
+                    <Link
+                      href={href}
+                      className="text-[13px] font-bold text-[var(--fg)] hover:text-[var(--accent)] hover:underline"
+                    >
+                      {name}
+                    </Link>
+                  ) : (
+                    <span className="text-[13px] font-bold text-[var(--fg)]">
+                      {name}
+                    </span>
+                  );
+                })()}
                 <span className="text-[var(--fg-3)] num text-[12px] ml-auto">
                   {fmtTime(m.created_at)}
                 </span>
