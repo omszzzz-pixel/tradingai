@@ -81,6 +81,18 @@ function colorize(text: string): React.ReactNode[] {
   return parts;
 }
 
+type Stance = "long" | "short" | "neutral" | null;
+
+function parseStance(body: string): { stance: Stance; rest: string } {
+  const m = body.match(/^(▲ 롱 우위|▼ 숏 우위|● 관망)([\s\S]*)$/);
+  if (!m) return { stance: null, rest: body };
+  const label = m[1];
+  const rest = m[2].replace(/^\s*\/\s*/, "").trim();
+  if (label.startsWith("▲")) return { stance: "long", rest };
+  if (label.startsWith("▼")) return { stance: "short", rest };
+  return { stance: "neutral", rest };
+}
+
 function parseBotBody(body: string): {
   headline: string;
   detail: string;
@@ -338,6 +350,7 @@ export default function Chat({
                   <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] space-y-2.5">
                     {t.replies.map((r) => {
                       const winRate = winRates[r.display_name ?? ""];
+                      const { stance, rest } = parseStance(r.body);
                       return (
                         <div key={r.id} className="flex gap-2.5">
                           <span className="rounded-full overflow-hidden shrink-0 mt-0.5">
@@ -364,18 +377,68 @@ export default function Chat({
                                   승률 {winRate.toFixed(0)}%
                                 </span>
                               )}
-                              <span className="text-[var(--fg-3)] num text-[11px]">
+                              {stance && (
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-px rounded ${
+                                    stance === "long"
+                                      ? "up bg-[rgba(200,74,49,0.10)]"
+                                      : stance === "short"
+                                        ? "down bg-[rgba(18,97,196,0.10)]"
+                                        : "text-[var(--fg-2)] bg-[var(--bg-3)]"
+                                  }`}
+                                >
+                                  {stance === "long"
+                                    ? "▲ 롱"
+                                    : stance === "short"
+                                      ? "▼ 숏"
+                                      : "● 관망"}
+                                </span>
+                              )}
+                              <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
                                 {fmtTime(r.created_at)}
                               </span>
                             </div>
-                            <div className="text-[13px] text-[var(--fg)] leading-relaxed">
-                              {colorize(r.body)}
-                            </div>
+                            {rest && (
+                              <div className="text-[13px] text-[var(--fg)] leading-relaxed">
+                                {colorize(rest)}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
+                  {(() => {
+                    let l = 0,
+                      s = 0,
+                      n = 0;
+                    for (const r of t.replies) {
+                      const { stance } = parseStance(r.body);
+                      if (stance === "long") l++;
+                      else if (stance === "short") s++;
+                      else n++;
+                    }
+                    const total = l + s + n;
+                    const majority =
+                      l > s && l > n
+                        ? { label: "롱 우위", cls: "up" }
+                        : s > l && s > n
+                          ? { label: "숏 우위", cls: "down" }
+                          : { label: "관망 우위", cls: "text-[var(--fg-2)]" };
+                    return (
+                      <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] flex items-center gap-2 text-[12px]">
+                        <span className="text-[11px] font-bold text-[var(--fg-3)]">
+                          💡 종합
+                        </span>
+                        <span className={`font-bold ${majority.cls}`}>
+                          {majority.label}
+                        </span>
+                        <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
+                          롱 {l} · 숏 {s} · 관망 {n}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             });
