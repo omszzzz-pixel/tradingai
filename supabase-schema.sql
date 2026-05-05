@@ -15,7 +15,7 @@ create table if not exists agents (
   id text primary key,
   display_name text not null,
   model text not null,
-  style text not null check (style in ('scalp','swing')),
+  style text not null check (style in ('aggressive','conservative')),
   symbol text not null default 'BTCUSDT',
   timeframe text not null default '5m',
   starting_balance numeric not null default 10000000,
@@ -137,7 +137,7 @@ end $$;
 
 -- seed: MVP agent
 insert into agents (id, display_name, model, style)
-values ('sonnet-scalp', 'Claude Sonnet 단타', 'claude-sonnet-4-6', 'scalp')
+values ('sonnet-aggressive', 'Claude Sonnet 공격형', 'claude-sonnet-4-6', 'aggressive')
 on conflict (id) do nothing;
 
 -- NOTE: RLS is intentionally disabled for MVP. Enable + add policies before production.

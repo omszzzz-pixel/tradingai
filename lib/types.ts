@@ -57,7 +57,7 @@ export type Agent = {
   id: string;
   display_name: string;
   model: string;
-  style: "scalp" | "swing";
+  style: "aggressive" | "conservative";
   symbol: string;
   timeframe: string;
   starting_balance: number;

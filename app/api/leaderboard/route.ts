@@ -7,7 +7,7 @@ type AgentRow = {
   id: string;
   display_name: string;
   model: string;
-  style: "scalp" | "swing";
+  style: "aggressive" | "conservative";
   is_active: boolean;
 };
 

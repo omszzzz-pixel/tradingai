@@ -10,7 +10,7 @@ export function agentIdFromName(name: string): string | null {
   else if (lc.includes("gpt")) prefix = "gpt";
   else if (lc.includes("gemini")) prefix = "gemini";
   if (!prefix) return null;
-  const suffix = name.includes("스윙") ? "swing" : "scalp";
+  const suffix = name.includes("보수형") ? "conservative" : "aggressive";
   return `${prefix}-${suffix}`;
 }
 

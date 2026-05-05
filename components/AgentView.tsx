@@ -46,7 +46,7 @@ export default function AgentView({
   agentId: string;
   displayName: string;
   model: string;
-  style: "scalp" | "swing";
+  style: "aggressive" | "conservative";
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [stances, setStances] = useState<StanceRow[] | null>(null);
@@ -100,7 +100,7 @@ export default function AgentView({
                 <h1 className="text-[20px] font-bold">{displayName}</h1>
                 <span className="chip">{model}</span>
                 <span className="chip">
-                  {style === "scalp" ? "단타" : "스윙"}
+                  {style === "aggressive" ? "공격형" : "보수형"}
                 </span>
               </div>
               <div className="text-[13px] text-[var(--fg-3)]">

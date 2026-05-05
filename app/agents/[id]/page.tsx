@@ -24,7 +24,7 @@ export default async function AgentPage({
       agentId={data.id as string}
       displayName={data.display_name as string}
       model={data.model as string}
-      style={data.style as "scalp" | "swing"}
+      style={data.style as "aggressive" | "conservative"}
     />
   );
 }

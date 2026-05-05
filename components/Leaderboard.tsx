@@ -8,14 +8,14 @@ type Row = {
   id: string;
   display_name: string;
   model: string;
-  style: "scalp" | "swing";
+  style: "aggressive" | "conservative";
   is_active: boolean;
   accuracy: number;
   stance_count: number;
   correct_count: number;
 };
 
-type Filter = "all" | "scalp" | "swing";
+type Filter = "all" | "aggressive" | "conservative";
 
 export default function Leaderboard() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -71,13 +71,17 @@ export default function Leaderboard() {
           </div>
           <span className="w-px h-4 bg-[var(--border)]" />
           <div className="flex gap-1">
-            {(["all", "scalp", "swing"] as Filter[]).map((f) => (
+            {(["all", "aggressive", "conservative"] as Filter[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`btn-tab ${filter === f ? "active" : ""}`}
               >
-                {f === "all" ? "전체" : f === "scalp" ? "단타" : "스윙"}
+                {f === "all"
+                  ? "전체"
+                  : f === "aggressive"
+                    ? "공격형"
+                    : "보수형"}
               </button>
             ))}
           </div>
@@ -122,7 +126,7 @@ export default function Leaderboard() {
                       <div className="font-semibold">{r.display_name}</div>
                       <div className="text-[11px] text-[var(--fg-3)]">
                         {r.model} ·{" "}
-                        {r.style === "scalp" ? "단타" : "스윙"}
+                        {r.style === "aggressive" ? "공격형" : "보수형"}
                         {!r.is_active && " · 시드 데이터"}
                       </div>
                     </Link>
