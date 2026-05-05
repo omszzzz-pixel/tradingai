@@ -3,7 +3,7 @@ config({ path: ".env.local" });
 config();
 
 import { supabaseService } from "../lib/supabase";
-import { symbolShort } from "../lib/symbols";
+import { fmtPrice, symbolShort } from "../lib/symbols";
 
 const USER_NAMES = [
   "코인러",
@@ -147,112 +147,154 @@ async function main() {
     return "all";
   }
 
-  type ObsStep = { offsetMs: number; text: string };
+  type AgentKey = "sonnet" | "opus" | "gpt" | "gemini";
 
-  type TradeMeta = {
+  const ENTRY_REASONS: Record<AgentKey, string[]> = {
+    sonnet: [
+      "RSI {rsi} 과매도 + EMA20 돌파",
+      "지지선 회복 + 거래량 {volMul}x",
+      "BB 하단 반등 시그널 포착",
+      "단기 매수 압력 증가",
+      "모멘텀 양전 + 추세 회복",
+    ],
+    opus: [
+      "ATR {atrMul}x 확장 + 매수 우위",
+      "분할 진입 1차, 손익비 양호",
+      "지지선 더블탑 확인",
+      "변동성 확장 + 매물대 이탈",
+      "주요 레벨 돌파 시그널",
+    ],
+    gpt: [
+      "전략 점수 {s1}→{s2}, MACD 크로스",
+      "거래량 {volMul}x + RSI 과매도",
+      "모멘텀 점수 상위권 진입",
+      "MACD 시그널 라인 상방 + 히스토그램 양전",
+      "RSI({rsi}) + MACD 동조 시그널",
+    ],
+    gemini: [
+      "RSI 과매도",
+      "거래량 급증",
+      "매수 우위",
+      "모멘텀 양전",
+    ],
+  };
+
+  const EXIT_REASONS: Record<AgentKey, string[]> = {
+    sonnet: [
+      "1차 익절 라인 도달",
+      "MACD 약화 시그널",
+      "추세 둔화 감지, 보수적 정리",
+      "변동성 둔화",
+      "주요 저항 부근 도달",
+    ],
+    opus: [
+      "리스크 관리선 도달",
+      "추세 약화 → 보수적 청산",
+      "트레일링 스탑 작동",
+      "주요 저항 부근 청산",
+      "변동성 축소 → 사이즈 정리",
+    ],
+    gpt: [
+      "R:R 1:2 도달",
+      "히스토그램 둔화 감지",
+      "전략 점수 하락 ({s2}→{s1})",
+      "MACD 시그널 약화",
+      "거래량 감소 + 모멘텀 둔화",
+    ],
+    gemini: [
+      "익절",
+      "추세 둔화",
+      "모멘텀 약화",
+      "정리",
+    ],
+  };
+
+  function pickFrom<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function tmpl(s: string, vars: Record<string, string>): string {
+    return s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  }
+
+  function agentKey(agentId: string): AgentKey {
+    if (agentId.startsWith("sonnet")) return "sonnet";
+    if (agentId.startsWith("opus")) return "opus";
+    if (agentId.startsWith("gpt")) return "gpt";
+    return "gemini";
+  }
+
+  function fmtTimeKr(ms: number): string {
+    const d = new Date(ms);
+    return new Intl.DateTimeFormat("ko-KR", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+      .format(d)
+      .replace(/\./g, "/")
+      .replace(/\/\s/g, " ")
+      .replace(/\/$/, "");
+  }
+
+  type SummaryMeta = {
     agent_id: string;
     symbol: string;
     side: "long" | "short";
+    entry: number;
+    exit: number;
     opened: number;
     closed: number;
+    pnlPct: number;
   };
 
-  function buildObservations(t: TradeMeta): ObsStep[] {
-    const { agent_id, symbol, side, opened, closed } = t;
-    const sym = symbolShort(symbol);
-    const dur = closed - opened;
-    const sideLeaning = side === "long" ? "매수" : "매도";
-    const rsi = (30 + Math.random() * 24).toFixed(0);
-    const atrMul = (1.2 + Math.random() * 0.6).toFixed(2);
-    const volMul = (1.3 + Math.random() * 0.4).toFixed(1);
-    const score1 = 60 + Math.floor(Math.random() * 15);
-    const score2 = score1 + 5 + Math.floor(Math.random() * 10);
+  function buildSummary(t: SummaryMeta): string {
+    const key = agentKey(t.agent_id);
+    const vars = {
+      rsi: String(28 + Math.floor(Math.random() * 25)),
+      volMul: (1.2 + Math.random() * 0.5).toFixed(1),
+      atrMul: (1.2 + Math.random() * 0.6).toFixed(1),
+      s1: String(60 + Math.floor(Math.random() * 15)),
+      s2: String(75 + Math.floor(Math.random() * 15)),
+    };
+    const entryReason = tmpl(pickFrom(ENTRY_REASONS[key]), vars);
+    const exitReason = tmpl(pickFrom(EXIT_REASONS[key]), vars);
+    const sym = symbolShort(t.symbol);
+    const sideKr = t.side === "long" ? "매수" : "매도";
+    const sign = t.pnlPct >= 0 ? "+" : "";
+    const pnl = `${sign}${t.pnlPct.toFixed(2)}%`;
 
-    if (agent_id.startsWith("sonnet")) {
-      return [
-        {
-          offsetMs: -8 * 60_000,
-          text: `⭕ ${sym} RSI ${rsi} → 과매도 영역 진입\n⭕ 거래량 평균 대비 ${volMul}x\n⭕ ${sideLeaning} 압력 증가 구간 관측`,
-        },
-        {
-          offsetMs: dur * 0.5,
-          text: `⭕ 모멘텀 지표 양전 유지\n⭕ 주요 레벨 근접 관측`,
-        },
-        {
-          offsetMs: dur,
-          text: `⭕ 변동성 둔화 시그널\n⭕ 추세 약화 감지`,
-        },
-      ];
-    }
-    if (agent_id.startsWith("opus")) {
-      return [
-        {
-          offsetMs: -10 * 60_000,
-          text: `⭕ ${sym} ATR 평소 대비 ${atrMul}x → 변동성 확대\n⭕ 직전 저점 지지 유지`,
-        },
-        {
-          offsetMs: -3 * 60_000,
-          text: `⭕ 매물대 부근 관측\n⭕ 리스크 관리 모드`,
-        },
-        {
-          offsetMs: dur * 0.6,
-          text: `⭕ 추세 강도 점검 중\n⭕ 트리거 조건 부분 충족`,
-        },
-        {
-          offsetMs: dur,
-          text: `⭕ 추세 둔화 → 관망 우위 전환`,
-        },
-      ];
-    }
-    if (agent_id.startsWith("gpt")) {
-      return [
-        {
-          offsetMs: -6 * 60_000,
-          text: `⭕ ${sym} 전략 점수: ${score1} → ${score2} 상승\n⭕ MACD 시그널 크로스 임박\n⭕ ${sideLeaning} 압력 우위`,
-        },
-        {
-          offsetMs: dur * 0.5,
-          text: `⭕ MACD 히스토그램 확장 지속\n⭕ 모멘텀 점수 상위권 유지`,
-        },
-        {
-          offsetMs: dur,
-          text: `⭕ 추세 둔화 시그널\n⭕ 다음 셋업 탐색 모드`,
-        },
-      ];
-    }
-    if (agent_id.startsWith("gemini")) {
-      return [
-        {
-          offsetMs: -4 * 60_000,
-          text: `⭕ ${sym} RSI ${rsi}\n⭕ 거래량 급증\n⭕ ${sideLeaning} 우위`,
-        },
-        { offsetMs: dur * 0.5, text: `⭕ 모멘텀 양전 유지` },
-        { offsetMs: dur, text: `⭕ 추세 둔화 감지` },
-      ];
-    }
-    return [];
+    return `${sym} ${sideKr} 매매 종료 · ${pnl}
+
+진입 ${fmtTimeKr(t.opened)} · ${fmtPrice(t.entry)}
+근거 · ${entryReason}
+
+청산 ${fmtTimeKr(t.closed)} · ${fmtPrice(t.exit)}
+근거 · ${exitReason}`;
   }
 
-  for (const t of (trades ?? []).slice(0, 12)) {
+  for (const t of (trades ?? []).slice(0, 16)) {
     const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
     const channel = channelForSymbol(t.symbol as string);
-    const meta: TradeMeta = {
+    const meta: SummaryMeta = {
       agent_id: t.agent_id as string,
       symbol: t.symbol as string,
       side: t.side as "long" | "short",
+      entry: Number(t.entry_price),
+      exit: Number(t.exit_price),
       opened: new Date(t.opened_at as string).getTime(),
       closed: new Date(t.closed_at as string).getTime(),
+      pnlPct: Number(t.pnl_pct),
     };
-    const steps = buildObservations(meta);
-    for (const s of steps) {
-      rows.push({
-        display_name: name,
-        body: s.text,
-        channel,
-        is_bot: true,
-        created_at: new Date(meta.opened + s.offsetMs).toISOString(),
-      });
-    }
+    rows.push({
+      display_name: name,
+      body: buildSummary(meta),
+      channel,
+      is_bot: true,
+      created_at: new Date(meta.closed).toISOString(),
+    });
   }
 
   rows.sort(
