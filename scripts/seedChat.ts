@@ -3,7 +3,6 @@ config({ path: ".env.local" });
 config();
 
 import { supabaseService } from "../lib/supabase";
-import { fmtPrice, symbolShort } from "../lib/symbols";
 
 const USER_NAMES = [
   "코인러",
@@ -127,175 +126,132 @@ async function main() {
   for (let i = 0; i < 8; i++) addUser("btc", pick(BTC_MSGS), 1);
   for (let i = 0; i < 4; i++) addUser("free", pick(FREE_MSGS), 1);
 
-  const { data: trades, error } = await sb
-    .from("trades")
-    .select("id, agent_id, symbol, side, entry_price, exit_price, pnl_pct, opened_at, closed_at")
-    .order("closed_at", { ascending: false })
-    .limit(60);
-  if (error) throw error;
+  // ─── Market Intel Bots ────────────────────────────────────────
+  const MARKET_BOTS: { name: string; messages: string[] }[] = [
+    {
+      name: "🐳 고래봇",
+      messages: [
+        "0x4f5e... 지갑 → Binance: 1,200 BTC (~$96M) 입금. 평소 대비 4.5x 규모",
+        "Bitfinex → Coinbase: 2,400 BTC ($192M) 이동 감지. 매도 압력 가능성",
+        "Tether Treasury 활동: 100M USDT 신규 발행 → Binance 전송",
+        "휴면 7년 지갑 활성화: 3,500 BTC 이동",
+        "한국 거래소 입금 급증: 업비트 +840 BTC (1h)",
+        "BlackRock 추정 지갑 → Coinbase Custody: 8,200 BTC 이동",
+        "0x9a3f... 신규 지갑 1,500 ETH 출금 (Lido 언스테이킹 추정)",
+        "Binance Hot Wallet → Cold Storage: 25,000 BTC 이동",
+        "Tron Foundation: 200M USDT 추가 mint",
+        "FTX Estate 지갑 활동: 12,000 SOL → Coinbase",
+      ],
+    },
+    {
+      name: "📊 펀딩비봇",
+      messages: [
+        "BTC 펀딩비 -0.018% (직전 -0.005%) · 롱 진영 우세 가속",
+        "ETH 펀딩비 +0.025%로 급등 · 숏 우위 → 청산 압력",
+        "SOL 펀딩비 -0.05% (1h -100% 변화) · 롱 압력 극단",
+        "BTC 8h 누적 펀딩비 -0.12% (24h 최저)",
+        "XRP 펀딩비 양전 전환 · 롱 자금 유입 가속",
+        "ETH 4h 펀딩비 평균 -0.012% · 롱 우세 지속",
+        "BTC 펀딩비 0% 근접 · 양 진영 균형",
+      ],
+    },
+    {
+      name: "💥 청산봇",
+      messages: [
+        "BTC 78,500 부근 $4.2M 롱 청산 클러스터 트리거",
+        "ETH 24h 청산 총액 $128M (롱 76% / 숏 24%)",
+        "1h 내 BTC 청산 $50M+ · 78,420 / 78,180 부근 집중",
+        "BTCUSDT $1.5M 단일 롱 강제청산 - 78,234",
+        "SOL 21만 SOL 숏 청산 (~$30M 규모)",
+        "ETH 3,500 부근 $8M 롱 청산 발생",
+        "전체 시장 1h 청산 $87M (롱 우세)",
+      ],
+    },
+    {
+      name: "🇰🇷 김프봇",
+      messages: [
+        "BTC 김프 +2.4% (한 달 최고). 출금 막힘 신호 주의",
+        "업비트 KRW vs 바이낸스 USDT: BTC +3.1%, ETH +2.8%",
+        "역김프 -0.5% 진입 · 한국 시장 약세 신호",
+        "김프 1.8% → 2.4% (1h +0.6%p) · 한국 매수세 가속",
+        "USDT 김프 1.2% → 1.6% · 차익 거래 활성",
+        "ETH 김프 +1.9% (BTC 김프 +2.4% 따라감)",
+        "SOL 김프 +3.2% · 알트 김프 확대",
+      ],
+    },
+    {
+      name: "🏦 상장봇",
+      messages: [
+        "업비트 KRW 마켓: APE 신규 상장. 14:00 거래 시작",
+        "Binance Futures 신규 페어: ZRO/USDT 무기한",
+        "코인원 BNB 거래 일시 중단 공지 (지갑 점검)",
+        "Coinbase HYPE 상장 검토 발표",
+        "업비트 BTC 일시 입출금 중단 (지갑 업그레이드)",
+        "빗썸 KRW 마켓: NEW 토큰 신규 상장 예정",
+        "Bybit USDT 무기한 신규 페어 5종 상장",
+      ],
+    },
+    {
+      name: "📰 뉴스봇",
+      messages: [
+        "BlackRock IBIT (BTC ETF) 24h 자금 유입 +$420M",
+        "SEC, 이더리움 ETF 신청서 추가 코멘트 요청",
+        "마이크로스트래티지, BTC 5,400개 추가 매입 발표",
+        "Tether: 신규 USDT 1B mint (지난 1주 누적 4.5B)",
+        "Galaxy Digital, 채굴 자회사 매각 발표",
+        "Fidelity FBTC 24h 자금 유입 +$180M",
+        "Grayscale GBTC 24h 자금 유출 -$92M (12일 연속)",
+        "Solana Foundation: 검증인 보상 정책 변경 발표",
+      ],
+    },
+    {
+      name: "⚡ OI봇",
+      messages: [
+        "BTC 미결제약정 1h 변화: +2.4% (포지션 증가 · 추세 강화)",
+        "ETH OI 24h: -3.8% (포지션 감소 · 청산 영향)",
+        "SOL 무기한 OI $850M 도달 (역대 2위)",
+        "BTCUSDT 선물 OI 신고가 갱신",
+        "1h 내 BTC OI 급감 -5% · 대규모 청산 신호",
+        "ETH OI 1h +1.8% · 신규 진입 우세",
+      ],
+    },
+    {
+      name: "⏰ 거시봇",
+      messages: [
+        "오늘 22:30 (KST) 美 CPI 발표 예정 · 변동성 주의",
+        "FOMC 12월 회의 14일 새벽 4시 (KST)",
+        "中 PBoC 금리 동결 발표",
+        "DXY 105.6 (1주일 최고) · 위험자산 압박",
+        "美 10년물 4.42% (전일 4.38%) · 채권 수익률 상승",
+        "나스닥 -1.2% 마감 · 위험자산 약세 분위기",
+        "美 비농업 고용 +180K (예상 +210K) · 약세",
+        "ECB 금리 동결 결정 · 유로존 인플레 안정화 멘트",
+      ],
+    },
+  ];
 
-  const { data: agents } = await sb
-    .from("agents")
-    .select("id, display_name");
-  const agentNameMap = new Map<string, string>(
-    (agents ?? []).map((a) => [a.id as string, a.display_name as string]),
-  );
-
-  function channelForSymbol(sym: string): string {
-    if (sym === "BTCUSDT") return "btc";
-    if (sym === "ETHUSDT") return "eth";
-    return "all";
-  }
-
-  type AgentKey = "sonnet" | "opus" | "gpt" | "gemini";
-
-  const ENTRY_REASONS: Record<AgentKey, string[]> = {
-    sonnet: [
-      "RSI {rsi} 과매도 + EMA20 돌파",
-      "지지선 회복 + 거래량 {volMul}x",
-      "BB 하단 반등 시그널 포착",
-      "단기 매수 압력 증가",
-      "모멘텀 양전 + 추세 회복",
-    ],
-    opus: [
-      "ATR {atrMul}x 확장 + 매수 우위",
-      "분할 진입 1차, 손익비 양호",
-      "지지선 더블탑 확인",
-      "변동성 확장 + 매물대 이탈",
-      "주요 레벨 돌파 시그널",
-    ],
-    gpt: [
-      "전략 점수 {s1}→{s2}, MACD 크로스",
-      "거래량 {volMul}x + RSI 과매도",
-      "모멘텀 점수 상위권 진입",
-      "MACD 시그널 라인 상방 + 히스토그램 양전",
-      "RSI({rsi}) + MACD 동조 시그널",
-    ],
-    gemini: [
-      "RSI 과매도",
-      "거래량 급증",
-      "매수 우위",
-      "모멘텀 양전",
-    ],
-  };
-
-  const EXIT_REASONS: Record<AgentKey, string[]> = {
-    sonnet: [
-      "1차 익절 라인 도달",
-      "MACD 약화 시그널",
-      "추세 둔화 감지, 보수적 정리",
-      "변동성 둔화",
-      "주요 저항 부근 도달",
-    ],
-    opus: [
-      "리스크 관리선 도달",
-      "추세 약화 → 보수적 청산",
-      "트레일링 스탑 작동",
-      "주요 저항 부근 청산",
-      "변동성 축소 → 사이즈 정리",
-    ],
-    gpt: [
-      "R:R 1:2 도달",
-      "히스토그램 둔화 감지",
-      "전략 점수 하락 ({s2}→{s1})",
-      "MACD 시그널 약화",
-      "거래량 감소 + 모멘텀 둔화",
-    ],
-    gemini: [
-      "익절",
-      "추세 둔화",
-      "모멘텀 약화",
-      "정리",
-    ],
-  };
-
-  function pickFrom<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function tmpl(s: string, vars: Record<string, string>): string {
-    return s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
-  }
-
-  function agentKey(agentId: string): AgentKey {
-    if (agentId.startsWith("sonnet")) return "sonnet";
-    if (agentId.startsWith("opus")) return "opus";
-    if (agentId.startsWith("gpt")) return "gpt";
-    return "gemini";
-  }
-
-  function fmtTimeKr(ms: number): string {
-    const d = new Date(ms);
-    return new Intl.DateTimeFormat("ko-KR", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-      .format(d)
-      .replace(/\./g, "/")
-      .replace(/\/\s/g, " ")
-      .replace(/\/$/, "");
-  }
-
-  type SummaryMeta = {
-    agent_id: string;
-    symbol: string;
-    side: "long" | "short";
-    entry: number;
-    exit: number;
-    opened: number;
-    closed: number;
-    pnlPct: number;
-  };
-
-  function buildSummary(t: SummaryMeta): string {
-    const key = agentKey(t.agent_id);
-    const vars = {
-      rsi: String(28 + Math.floor(Math.random() * 25)),
-      volMul: (1.2 + Math.random() * 0.5).toFixed(1),
-      atrMul: (1.2 + Math.random() * 0.6).toFixed(1),
-      s1: String(60 + Math.floor(Math.random() * 15)),
-      s2: String(75 + Math.floor(Math.random() * 15)),
-    };
-    const entryReason = tmpl(pickFrom(ENTRY_REASONS[key]), vars);
-    const exitReason = tmpl(pickFrom(EXIT_REASONS[key]), vars);
-    const sym = symbolShort(t.symbol);
-    const sideKr = t.side === "long" ? "롱" : "숏";
-    const sign = t.pnlPct >= 0 ? "+" : "";
-    const pnl = `${sign}${t.pnlPct.toFixed(2)}%`;
-
-    return `${sym} ${sideKr} 매매 종료 · ${pnl}
-
-진입 ${fmtTimeKr(t.opened)} · ${fmtPrice(t.entry)}
-근거 · ${entryReason}
-
-청산 ${fmtTimeKr(t.closed)} · ${fmtPrice(t.exit)}
-근거 · ${exitReason}`;
-  }
-
-  for (const t of (trades ?? []).slice(0, 16)) {
-    const name = agentNameMap.get(t.agent_id as string) ?? t.agent_id;
-    const channel = channelForSymbol(t.symbol as string);
-    const meta: SummaryMeta = {
-      agent_id: t.agent_id as string,
-      symbol: t.symbol as string,
-      side: t.side as "long" | "short",
-      entry: Number(t.entry_price),
-      exit: Number(t.exit_price),
-      opened: new Date(t.opened_at as string).getTime(),
-      closed: new Date(t.closed_at as string).getTime(),
-      pnlPct: Number(t.pnl_pct),
-    };
-    rows.push({
-      display_name: name,
-      body: buildSummary(meta),
-      channel,
-      is_bot: true,
-      trade_id: t.id,
-      created_at: new Date(meta.closed).toISOString(),
-    });
+  // Spread market intel messages over the last 48 hours.
+  // Each bot posts ~6-10 messages, randomly distributed.
+  for (const bot of MARKET_BOTS) {
+    const count = 6 + Math.floor(Math.random() * 4);
+    const used = new Set<number>();
+    for (let i = 0; i < count; i++) {
+      let idx: number;
+      let attempts = 0;
+      do {
+        idx = Math.floor(Math.random() * bot.messages.length);
+        attempts++;
+      } while (used.has(idx) && attempts < bot.messages.length);
+      used.add(idx);
+      const ageMs = Math.random() * 48 * 3600_000;
+      rows.push({
+        display_name: bot.name,
+        body: bot.messages[idx],
+        channel: "intel",
+        is_bot: true,
+        created_at: new Date(Date.now() - ageMs).toISOString(),
+      });
+    }
   }
 
   rows.sort(

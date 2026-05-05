@@ -3,7 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import AgentLogo from "./AgentLogo";
+import AgentLogo, { agentIdFromName } from "./AgentLogo";
+
+const INTEL_BOT_COLORS: Record<string, string> = {
+  고래: "#0ea5e9",
+  펀딩: "#f97316",
+  청산: "#ef4444",
+  김프: "#dc2626",
+  상장: "#8b5cf6",
+  뉴스: "#6b7280",
+  OI: "#facc15",
+  거시: "#10b981",
+};
+
+function intelBotColor(name: string): string {
+  for (const k of Object.keys(INTEL_BOT_COLORS)) {
+    if (name.includes(k)) return INTEL_BOT_COLORS[k];
+  }
+  return "#6b7280";
+}
 
 type Msg = {
   id: string;
@@ -189,22 +207,28 @@ export default function Chat({
         {msgs.map((m) => (
           <div
             key={m.id}
-            className={`mb-2.5 leading-snug break-words ${
-              m.is_bot ? "px-2 py-1.5 rounded bg-[var(--bg-soft)] border-l-2 border-[var(--accent)]" : ""
-            }`}
+            className="mb-3 leading-snug break-words"
           >
             <div className="flex items-center gap-1.5 mb-0.5">
-              {m.is_bot && (
-                <span className="rounded-full overflow-hidden shrink-0">
-                  <AgentLogo
-                    displayName={m.display_name ?? ""}
-                    size={16}
+              {m.is_bot &&
+                (agentIdFromName(m.display_name ?? "") ? (
+                  <span className="rounded-full overflow-hidden shrink-0">
+                    <AgentLogo
+                      displayName={m.display_name ?? ""}
+                      size={16}
+                    />
+                  </span>
+                ) : (
+                  <span
+                    className="inline-block w-2 h-2 rounded-full shrink-0"
+                    style={{
+                      background: intelBotColor(m.display_name ?? ""),
+                    }}
                   />
-                </span>
-              )}
+                ))}
               <span
                 className={`text-[12px] font-semibold ${
-                  m.is_bot ? "text-[var(--accent)]" : "text-[var(--fg-2)]"
+                  m.is_bot ? "text-[var(--fg)]" : "text-[var(--fg-2)]"
                 }`}
               >
                 {m.display_name ?? "익명"}
