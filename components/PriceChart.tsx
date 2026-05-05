@@ -209,7 +209,7 @@ export default function PriceChart({
             position: "belowBar",
             color: themeColors.up,
             shape: "arrowUp",
-            text: `▲ 매수`,
+            text: `▲ 롱`,
           };
         }
         if (m.action === "open_short") {
@@ -218,7 +218,7 @@ export default function PriceChart({
             position: "aboveBar",
             color: themeColors.down,
             shape: "arrowDown",
-            text: `▼ 매도`,
+            text: `▼ 숏`,
           };
         }
         const pct = m.pnl_pct ?? 0;

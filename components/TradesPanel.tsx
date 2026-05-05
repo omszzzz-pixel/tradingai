@@ -192,7 +192,7 @@ export default function TradesPanel({
                       )}
                     </td>
                     <td className={`font-semibold ${t.side === "long" ? "up" : "down"}`}>
-                      {t.side === "long" ? "매수" : "매도"}
+                      {t.side === "long" ? "롱" : "숏"}
                     </td>
                     <td>{fmtPrice(t.entry_price)}</td>
                     <td>{t.exit_price !== null ? fmtPrice(t.exit_price) : "—"}</td>

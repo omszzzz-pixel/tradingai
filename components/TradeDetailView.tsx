@@ -146,7 +146,7 @@ export default function TradeDetailView({ id }: { id: string }) {
   const { trade, agent, open_reasoning, close_reasoning, snapshot, other_agents } =
     data;
   const sym = symbolShort(trade.symbol);
-  const sideKr = trade.side === "long" ? "매수" : "매도";
+  const sideKr = trade.side === "long" ? "롱" : "숏";
   const cls = trade.pnl >= 0 ? "up" : "down";
   const sign = trade.pnl_pct >= 0 ? "+" : "";
   const holdMin = diffMin(trade.opened_at, trade.closed_at);
@@ -471,7 +471,7 @@ export default function TradeDetailView({ id }: { id: string }) {
                     {a.agent_id}
                   </div>
                   <div
-                    className={`text-[11px] ${a.choice.includes("매수") ? "up" : a.choice.includes("매도") ? "down" : "text-[var(--fg-3)]"} font-medium`}
+                    className={`text-[11px] ${a.choice.includes("롱") ? "up" : a.choice.includes("숏") ? "down" : "text-[var(--fg-3)]"} font-medium`}
                   >
                     {a.choice}
                   </div>
@@ -535,7 +535,7 @@ export default function TradeDetailView({ id }: { id: string }) {
 
 function RelatedCard({ t }: { t: RelatedTrade }) {
   const sym = symbolShort(t.symbol);
-  const sideKr = t.side === "long" ? "매수" : "매도";
+  const sideKr = t.side === "long" ? "롱" : "숏";
   const sign = t.pnl_pct >= 0 ? "+" : "";
   const cls = t.pnl_pct >= 0 ? "up" : "down";
   return (

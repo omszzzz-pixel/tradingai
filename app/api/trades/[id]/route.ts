@@ -136,9 +136,9 @@ export async function GET(
         agent_id: d.agent_id as string,
         choice:
           d.action === "open_long"
-            ? "매수 진입"
+            ? "롱 진입"
             : d.action === "open_short"
-              ? "매도 진입"
+              ? "숏 진입"
               : d.action === "close"
                 ? "포지션 청산"
                 : "관망",

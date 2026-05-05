@@ -262,7 +262,7 @@ async function main() {
     const entryReason = tmpl(pickFrom(ENTRY_REASONS[key]), vars);
     const exitReason = tmpl(pickFrom(EXIT_REASONS[key]), vars);
     const sym = symbolShort(t.symbol);
-    const sideKr = t.side === "long" ? "매수" : "매도";
+    const sideKr = t.side === "long" ? "롱" : "숏";
     const sign = t.pnlPct >= 0 ? "+" : "";
     const pnl = `${sign}${t.pnlPct.toFixed(2)}%`;
 

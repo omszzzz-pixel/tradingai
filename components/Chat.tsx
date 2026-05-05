@@ -36,7 +36,7 @@ function fmtTime(iso: string): string {
 }
 
 function renderBotBody(body: string) {
-  const pattern = /(진입|청산|매수|매도|[+-]\d+\.\d+%)/g;
+  const pattern = /(진입|청산|롱|숏|[+-]\d+\.\d+%)/g;
   const parts: React.ReactNode[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
@@ -47,8 +47,8 @@ function renderBotBody(body: string) {
     let cls = "";
     if (t === "진입") cls = "text-emerald-500 font-bold";
     else if (t === "청산") cls = "text-amber-500 font-bold";
-    else if (t === "매수") cls = "up font-bold";
-    else if (t === "매도") cls = "down font-bold";
+    else if (t === "롱") cls = "up font-bold";
+    else if (t === "숏") cls = "down font-bold";
     else if (t.startsWith("+")) cls = "up font-bold";
     else if (t.startsWith("-")) cls = "down font-bold";
     parts.push(

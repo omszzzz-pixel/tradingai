@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   const items: Item[] = [];
   for (const t of trades ?? []) {
     const name = nameMap.get(t.agent_id as string) ?? (t.agent_id as string);
-    const sideKr = t.side === "long" ? "매수" : "매도";
+    const sideKr = t.side === "long" ? "롱" : "숏";
     const sym = symbolShort(t.symbol as string);
     const pct = Number(t.pnl_pct);
     const sign = pct >= 0 ? "+" : "";
