@@ -11,15 +11,20 @@ const Body = z.object({
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const mode = searchParams.get("mode") ?? "ai";
-  const isBot = mode === "ai";
+  const mode = searchParams.get("mode") ?? "intel";
   const sb = supabaseService();
-  const { data, error } = await sb
+  let q = sb
     .from("messages")
     .select("id, display_name, body, channel, is_bot, trade_id, created_at")
-    .eq("is_bot", isBot)
     .order("created_at", { ascending: false })
     .limit(80);
+
+  if (mode === "intel") q = q.eq("channel", "intel");
+  else if (mode === "agent") q = q.eq("channel", "agent");
+  else if (mode === "general") q = q.eq("is_bot", false);
+  else if (mode === "ai") q = q.eq("is_bot", true); // legacy fallback
+
+  const { data, error } = await q;
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

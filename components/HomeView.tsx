@@ -4,7 +4,7 @@ import { useState } from "react";
 import Chat from "./Chat";
 import PriceChips from "./PriceChips";
 
-type Tab = "feed" | "community";
+type Tab = "feed" | "discussion";
 
 export default function HomeView() {
   const [tab, setTab] = useState<Tab>("feed");
@@ -16,10 +16,10 @@ export default function HomeView() {
         <PriceChips />
         <div className="flex-1 grid grid-cols-2 min-h-0 border-l border-r border-[var(--border)]">
           <div className="min-h-0 min-w-0 border-r border-[var(--border)]">
-            <Chat fixedMode="ai" />
+            <Chat fixedMode="intel" />
           </div>
           <div className="min-h-0 min-w-0">
-            <Chat fixedMode="general" />
+            <Chat fixedMode="agent" />
           </div>
         </div>
       </div>
@@ -35,18 +35,18 @@ export default function HomeView() {
           }
         >
           <div className="flex-1 min-h-0 flex">
-            <Chat fixedMode="ai" />
+            <Chat fixedMode="intel" />
           </div>
         </div>
         <div
           className={
-            tab === "community"
+            tab === "discussion"
               ? "fixed inset-x-0 top-[120px] bottom-[50px] flex"
               : "hidden"
           }
         >
           <div className="flex-1 min-h-0 flex">
-            <Chat fixedMode="general" />
+            <Chat fixedMode="agent" />
           </div>
         </div>
       </div>
@@ -63,14 +63,14 @@ export default function HomeView() {
           AI 피드
         </button>
         <button
-          onClick={() => setTab("community")}
+          onClick={() => setTab("discussion")}
           className={`flex-1 py-3.5 text-[14px] ${
-            tab === "community"
+            tab === "discussion"
               ? "text-[var(--fg)] border-t-2 border-[var(--accent)] font-bold"
               : "text-[var(--fg-3)] font-medium"
           }`}
         >
-          커뮤니티
+          AI 토론
         </button>
       </nav>
     </>

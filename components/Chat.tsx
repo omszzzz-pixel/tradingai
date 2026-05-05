@@ -113,25 +113,41 @@ function parseBotBody(body: string): {
   };
 }
 
+type Mode = "intel" | "agent" | "general" | "ai";
+
 export default function Chat({
   fixedMode,
   title,
   hideInput,
 }: {
-  fixedMode?: "ai" | "general";
+  fixedMode?: Mode;
   title?: string;
   hideInput?: boolean;
 }) {
-  const [mode, setMode] = useState<"ai" | "general">(fixedMode ?? "ai");
+  const [mode, setMode] = useState<Mode>(fixedMode ?? "intel");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [winRates, setWinRates] = useState<Record<string, number>>({});
   const listRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (fixedMode) setMode(fixedMode);
   }, [fixedMode]);
+
+  useEffect(() => {
+    if (mode !== "agent") return;
+    fetch("/api/leaderboard")
+      .then((r) => r.json())
+      .then((j: { rows: { display_name: string; win_rate: number }[] }) => {
+        const map: Record<string, number> = {};
+        for (const r of j.rows ?? [])
+          map[r.display_name] = Number(r.win_rate);
+        setWinRates(map);
+      })
+      .catch(() => {});
+  }, [mode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,6 +159,15 @@ export default function Chat({
       })
       .catch(() => {});
 
+    const filter =
+      mode === "intel"
+        ? `channel=eq.intel`
+        : mode === "agent"
+          ? `channel=eq.agent`
+          : mode === "general"
+            ? `is_bot=eq.false`
+            : `is_bot=eq.true`;
+
     const sb = getBrowserClient();
     const ch = sb
       .channel(`chat-${mode}`)
@@ -152,7 +177,7 @@ export default function Chat({
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `is_bot=eq.${mode === "ai"}`,
+          filter,
         },
         (payload) => {
           const m = payload.new as Msg;
@@ -175,8 +200,8 @@ export default function Chat({
   async function send() {
     const body = input.trim();
     if (!body) return;
-    if (mode === "ai") {
-      setErr("AI 매매 채널은 읽기 전용입니다");
+    if (mode !== "general") {
+      setErr("이 채널은 읽기 전용입니다");
       return;
     }
     setSending(true);
@@ -205,15 +230,24 @@ export default function Chat({
     >
       {fixedMode ? (
         <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
-          {fixedMode === "ai" ? (
+          {fixedMode === "intel" || fixedMode === "ai" ? (
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
+          ) : fixedMode === "agent" ? (
+            <span className="text-[16px]">🤖</span>
           ) : (
             <span className="text-[16px]">💬</span>
           )}
-          <span className="text-[15px] font-bold">{title ?? (fixedMode === "ai" ? "AI 정보 피드" : "커뮤니티")}</span>
+          <span className="text-[15px] font-bold">
+            {title ??
+              (fixedMode === "intel" || fixedMode === "ai"
+                ? "AI 정보 피드"
+                : fixedMode === "agent"
+                  ? "AI 토론"
+                  : "커뮤니티")}
+          </span>
         </div>
       ) : (
         <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
@@ -262,6 +296,48 @@ export default function Chat({
           }
 
           const isAgent = !!agentIdFromName(m.display_name ?? "");
+
+          // Agent commentary: compact chat style
+          if (isAgent && m.channel === "agent") {
+            const winRate = winRates[m.display_name ?? ""];
+            return (
+              <div
+                key={m.id}
+                className="mb-3 flex gap-2.5 leading-snug break-words"
+              >
+                <span className="rounded-full overflow-hidden shrink-0 mt-0.5">
+                  <AgentLogo displayName={m.display_name ?? ""} size={26} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-1.5 mb-0.5 flex-wrap">
+                    <span className="text-[13px] font-bold">
+                      {m.display_name ?? ""}
+                    </span>
+                    {typeof winRate === "number" && winRate > 0 && (
+                      <span
+                        className={`text-[10px] font-bold num px-1.5 py-px rounded ${
+                          winRate >= 60
+                            ? "up bg-[rgba(200,74,49,0.10)]"
+                            : winRate >= 50
+                              ? "text-[var(--fg-2)] bg-[var(--bg-3)]"
+                              : "down bg-[rgba(18,97,196,0.10)]"
+                        }`}
+                      >
+                        승률 {winRate.toFixed(0)}%
+                      </span>
+                    )}
+                    <span className="text-[var(--fg-3)] num text-[11px]">
+                      {fmtTime(m.created_at)}
+                    </span>
+                  </div>
+                  <div className="text-[14px] text-[var(--fg)] leading-relaxed">
+                    {colorize(m.body)}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           const dotColor = isAgent
             ? null
             : intelBotColor(m.display_name ?? "");
