@@ -53,14 +53,14 @@ function fmtTime(iso: string): string {
   });
 }
 
-function renderBotBody(body: string) {
+function colorize(text: string): React.ReactNode[] {
   const pattern = /(진입|청산|롱|숏|[+-]\d+\.\d+%)/g;
   const parts: React.ReactNode[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
   let key = 0;
-  while ((m = pattern.exec(body)) !== null) {
-    if (m.index > last) parts.push(body.slice(last, m.index));
+  while ((m = pattern.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
     const t = m[0];
     let cls = "";
     if (t === "진입") cls = "text-emerald-500 font-bold";
@@ -76,8 +76,41 @@ function renderBotBody(body: string) {
     );
     last = m.index + t.length;
   }
-  if (last < body.length) parts.push(body.slice(last));
+  if (last < text.length) parts.push(text.slice(last));
   return parts;
+}
+
+function parseBotBody(body: string): {
+  headline: string;
+  detail: string;
+  commentary: string;
+} {
+  const lines = body.split("\n");
+  const headline = lines[0]?.trim() ?? "";
+  const detail: string[] = [];
+  const commentary: string[] = [];
+  let inCommentary = false;
+  for (let i = 1; i < lines.length; i++) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    if (
+      trimmed.startsWith("📌") ||
+      trimmed.startsWith("⚡") ||
+      trimmed.startsWith("💡") ||
+      inCommentary
+    ) {
+      inCommentary = true;
+      commentary.push(trimmed);
+    } else {
+      detail.push(trimmed);
+    }
+  }
+  return {
+    headline,
+    detail: detail.join("\n"),
+    commentary: commentary.join("\n"),
+  };
 }
 
 export default function Chat({
@@ -204,52 +237,84 @@ export default function Chat({
             첫 메시지를 남겨보세요.
           </div>
         )}
-        {msgs.map((m) => (
-          <div
-            key={m.id}
-            className="mb-3 leading-snug break-words"
-          >
-            <div className="flex items-center gap-1.5 mb-0.5">
-              {m.is_bot &&
-                (agentIdFromName(m.display_name ?? "") ? (
+        {msgs.map((m) => {
+          if (!m.is_bot) {
+            return (
+              <div
+                key={m.id}
+                className="mb-2.5 leading-snug break-words"
+              >
+                <div className="flex items-baseline gap-1.5 mb-0.5">
+                  <span className="text-[12px] font-semibold text-[var(--fg-2)]">
+                    {m.display_name ?? "익명"}
+                  </span>
+                  <span className="text-[var(--fg-3)] num text-[11px]">
+                    {fmtTime(m.created_at)}
+                  </span>
+                </div>
+                <div className="text-[13px] text-[var(--fg)] pl-0.5">
+                  {m.body}
+                </div>
+              </div>
+            );
+          }
+
+          const isAgent = !!agentIdFromName(m.display_name ?? "");
+          const dotColor = isAgent
+            ? null
+            : intelBotColor(m.display_name ?? "");
+          const { headline, detail, commentary } = parseBotBody(m.body);
+
+          return (
+            <div
+              key={m.id}
+              className="mb-2 px-3 py-2.5 rounded-md border border-[var(--border)] hover:border-[var(--border-strong)] bg-[var(--bg)] transition-colors"
+            >
+              <div className="flex items-center gap-1.5 mb-1.5">
+                {isAgent ? (
                   <span className="rounded-full overflow-hidden shrink-0">
                     <AgentLogo
                       displayName={m.display_name ?? ""}
-                      size={16}
+                      size={14}
                     />
                   </span>
                 ) : (
                   <span
                     className="inline-block w-2 h-2 rounded-full shrink-0"
-                    style={{
-                      background: intelBotColor(m.display_name ?? ""),
-                    }}
+                    style={{ background: dotColor ?? "#6b7280" }}
                   />
-                ))}
-              <span
-                className={`text-[12px] font-semibold ${
-                  m.is_bot ? "text-[var(--fg)]" : "text-[var(--fg-2)]"
-                }`}
-              >
-                {m.display_name ?? "익명"}
-              </span>
-              <span className="text-[var(--fg-3)] num text-[11px]">
-                {fmtTime(m.created_at)}
-              </span>
+                )}
+                <span className="text-[11px] font-bold text-[var(--fg-2)]">
+                  {m.display_name ?? "익명"}
+                </span>
+                <span className="text-[var(--fg-3)] num text-[10px] ml-auto">
+                  {fmtTime(m.created_at)}
+                </span>
+              </div>
+              <div className="text-[14px] font-bold leading-snug">
+                {colorize(headline)}
+              </div>
+              {detail && (
+                <div className="text-[12px] text-[var(--fg-2)] mt-0.5 leading-snug whitespace-pre-line">
+                  {colorize(detail)}
+                </div>
+              )}
+              {commentary && (
+                <div className="text-[12px] text-[var(--fg-2)] mt-2 pt-2 border-t border-[var(--border)] leading-snug whitespace-pre-line">
+                  {colorize(commentary)}
+                </div>
+              )}
+              {m.trade_id && (
+                <Link
+                  href={`/trades/${m.trade_id}`}
+                  className="inline-block mt-2 text-[11px] font-semibold text-[var(--accent)] hover:underline"
+                >
+                  분석 보기 →
+                </Link>
+              )}
             </div>
-            <div className="text-[13px] text-[var(--fg)] pl-0.5 whitespace-pre-line">
-              {m.is_bot ? renderBotBody(m.body) : m.body}
-            </div>
-            {m.is_bot && m.trade_id && (
-              <Link
-                href={`/trades/${m.trade_id}`}
-                className="inline-block mt-2 text-[11px] font-semibold text-[var(--accent)] hover:underline"
-              >
-                분석 보기 →
-              </Link>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
       {!hideInput && mode !== "ai" && (
         <div className="border-t border-[var(--border)] p-2.5 flex gap-2">
