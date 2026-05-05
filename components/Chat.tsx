@@ -62,13 +62,25 @@ function renderBotBody(body: string) {
   return parts;
 }
 
-export default function Chat() {
-  const [mode, setMode] = useState<"ai" | "general">("ai");
+export default function Chat({
+  fixedMode,
+  title,
+  hideInput,
+}: {
+  fixedMode?: "ai" | "general";
+  title?: string;
+  hideInput?: boolean;
+}) {
+  const [mode, setMode] = useState<"ai" | "general">(fixedMode ?? "ai");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (fixedMode) setMode(fixedMode);
+  }, [fixedMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,18 +149,34 @@ export default function Chat() {
   }
 
   return (
-    <div className="panel flex flex-col h-full min-h-0 w-full">
-      <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
-        {MODES.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setMode(c.id)}
-            className={`btn-tab ${mode === c.id ? "active" : ""}`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+    <div
+      className={`flex flex-col h-full min-h-0 w-full ${fixedMode ? "" : "panel"}`}
+    >
+      {fixedMode ? (
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]">
+          {fixedMode === "ai" ? (
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+          ) : (
+            <span className="text-[14px]">💬</span>
+          )}
+          <span className="text-[13px] font-bold">{title ?? (fixedMode === "ai" ? "AI 정보 피드" : "커뮤니티")}</span>
+        </div>
+      ) : (
+        <div className="flex items-center px-2 py-1 border-b border-[var(--border)]">
+          {MODES.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setMode(c.id)}
+              className={`btn-tab ${mode === c.id ? "active" : ""}`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div
         ref={listRef}
         className="flex-1 overflow-y-auto px-3 py-2.5 text-[13px]"
@@ -199,35 +227,31 @@ export default function Chat() {
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--border)] p-2.5 flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              send();
-            }
-          }}
-          placeholder={
-            mode === "ai"
-              ? "AI 매매 피드 (읽기 전용)"
-              : err
-                ? err
-                : "메시지 (로그인 필요)"
-          }
-          maxLength={500}
-          disabled={sending || mode === "ai"}
-          className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
-        />
-        <button
-          onClick={send}
-          disabled={sending || !input.trim() || mode === "ai"}
-          className="text-[13px] px-3.5 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
-        >
-          전송
-        </button>
-      </div>
+      {!hideInput && mode !== "ai" && (
+        <div className="border-t border-[var(--border)] p-2.5 flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            placeholder={err ? err : "메시지 (로그인 필요)"}
+            maxLength={500}
+            disabled={sending}
+            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-2.5 py-1.5 text-[13px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
+          />
+          <button
+            onClick={send}
+            disabled={sending || !input.trim()}
+            className="text-[13px] px-3.5 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
+          >
+            전송
+          </button>
+        </div>
+      )}
     </div>
   );
 }
