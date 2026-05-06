@@ -463,9 +463,6 @@ export default function Chat({
                                         : "● 중립"}
                                 </span>
                               )}
-                              <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
-                                {fmtTime(r.created_at)}
-                              </span>
                             </div>
                             {rest && (
                               <div className="text-[13px] text-[var(--fg)] leading-relaxed whitespace-pre-line">
@@ -510,9 +507,9 @@ export default function Chat({
                     const headerLabel = isCoinSpecific
                       ? "AI 종합 의견"
                       : "AI 시장 분위기";
-                    const tally = isCoinSpecific
-                      ? `롱 ${l} · 숏 ${s} · 관망 ${n}`
-                      : `강세 ${l} · 약세 ${s} · 중립 ${n}`;
+                    const upLabel = isCoinSpecific ? "롱" : "강세";
+                    const downLabel = isCoinSpecific ? "숏" : "약세";
+                    const neutralLabel = isCoinSpecific ? "관망" : "중립";
                     return (
                       <div
                         className="mt-3 -mx-3.5 -mb-3 px-3.5 py-2.5 rounded-b-md border-t border-[var(--border)]"
@@ -527,8 +524,18 @@ export default function Chat({
                               {majority.label}
                             </span>
                           </div>
-                          <span className="num text-[11px] text-[var(--fg-2)] font-medium">
-                            {tally}
+                          <span className="num text-[11px] font-medium flex items-baseline gap-1.5">
+                            <span className="up font-bold">
+                              {upLabel} {l}
+                            </span>
+                            <span className="text-[var(--fg-4)]">·</span>
+                            <span className="down font-bold">
+                              {downLabel} {s}
+                            </span>
+                            <span className="text-[var(--fg-4)]">·</span>
+                            <span className="text-[var(--fg-2)] font-bold">
+                              {neutralLabel} {n}
+                            </span>
                           </span>
                         </div>
                       </div>
