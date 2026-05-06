@@ -84,11 +84,13 @@ export default function PriceChips() {
   const sequence = [...SYMBOLS, ...SYMBOLS, ...SYMBOLS, ...SYMBOLS];
 
   return (
-    <div className="border-b border-[var(--border)] bg-[var(--bg-2)] py-1.5 overflow-hidden whitespace-nowrap">
-      <div className="ticker-track">
-        {sequence.map((c, i) => (
-          <Item key={`${c.id}-${i}`} short={c.short} stat={stats[c.id]} />
-        ))}
+    <div className="border-b border-[var(--border)] bg-[var(--bg-2)] py-1.5">
+      <div className="max-w-[1400px] mx-auto px-4 overflow-hidden whitespace-nowrap">
+        <div className="ticker-track">
+          {sequence.map((c, i) => (
+            <Item key={`${c.id}-${i}`} short={c.short} stat={stats[c.id]} />
+          ))}
+        </div>
       </div>
     </div>
   );
