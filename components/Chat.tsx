@@ -350,52 +350,67 @@ export default function Chat({
               return (
                 <div
                   key={intel.id}
-                  className="mb-3 px-3.5 py-3 rounded-md border border-[var(--border)] bg-[var(--bg)]"
+                  className="mb-4 rounded-md border border-[var(--border)] bg-[var(--bg)] overflow-hidden"
                 >
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {isCoinSpecific ? (
-                      <span className="text-[13px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-white shrink-0">
-                        {sym}
-                      </span>
-                    ) : (
-                      <span className="text-[12px] font-bold px-2 py-0.5 rounded bg-[var(--bg-3)] text-[var(--fg-2)] shrink-0">
-                        시장
-                      </span>
-                    )}
-                    <span
-                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ background: dotColor }}
-                    />
-                    {(() => {
-                      const slug = botSlugFromName(intel.display_name ?? "");
-                      const name = intel.display_name ?? "";
-                      return slug ? (
-                        <Link
-                          href={`/bots/${slug}`}
-                          className="text-[12px] font-bold text-[var(--fg-2)] hover:text-[var(--fg)] hover:underline"
-                        >
-                          {name}
-                        </Link>
-                      ) : (
-                        <span className="text-[12px] font-bold text-[var(--fg-2)]">
-                          {name}
+                  {/* ─── 이슈 (인텔) ─── */}
+                  <div className="px-3.5 py-3 bg-[var(--bg-soft)] border-b border-[var(--border)]">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      {isCoinSpecific ? (
+                        <span className="text-[12px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-white shrink-0">
+                          {sym}
                         </span>
-                      );
-                    })()}
-                    <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
-                      {fmtTime(intel.created_at)}
-                    </span>
-                  </div>
-                  <div className="text-[14px] font-bold leading-snug">
-                    {colorize(headline)}
-                  </div>
-                  {detail && (
-                    <div className="text-[12px] text-[var(--fg-3)] mt-0.5 leading-snug">
-                      {colorize(detail.split("\n")[0])}
+                      ) : (
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--bg-3)] text-[var(--fg-2)] shrink-0">
+                          시장
+                        </span>
+                      )}
+                      <span
+                        className="inline-block w-2 h-2 rounded-full shrink-0"
+                        style={{ background: dotColor }}
+                      />
+                      {(() => {
+                        const slug = botSlugFromName(intel.display_name ?? "");
+                        const name = intel.display_name ?? "";
+                        return slug ? (
+                          <Link
+                            href={`/bots/${slug}`}
+                            className="text-[11px] font-bold text-[var(--fg-3)] hover:text-[var(--fg)] hover:underline uppercase tracking-wide"
+                          >
+                            {name}
+                          </Link>
+                        ) : (
+                          <span className="text-[11px] font-bold text-[var(--fg-3)] uppercase tracking-wide">
+                            {name}
+                          </span>
+                        );
+                      })()}
+                      <span className="text-[var(--fg-3)] num text-[11px] ml-auto">
+                        {fmtTime(intel.created_at)}
+                      </span>
                     </div>
-                  )}
+                    <div className="text-[16px] font-bold leading-snug">
+                      {colorize(headline)}
+                    </div>
+                    {detail && (
+                      <div className="text-[12px] text-[var(--fg-3)] mt-1 leading-snug">
+                        {colorize(detail.split("\n")[0])}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ─── AI 분석 ─── */}
                   {t.replies.length > 0 && (
-                  <div className="mt-2.5 pt-2.5 border-t border-[var(--border)] space-y-2.5">
+                  <div className="px-3.5 pt-3 pb-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold text-[var(--fg-3)] uppercase tracking-wider">
+                        AI 분석
+                      </span>
+                      <span className="text-[11px] text-[var(--fg-3)] num">
+                        {t.replies.length}명
+                      </span>
+                      <span className="flex-1 h-px bg-[var(--border)]" />
+                    </div>
+                    <div className="space-y-4">
                     {t.replies.map((r) => {
                       const winRate = winRates[r.display_name ?? ""];
                       const { stance, rest } = parseStance(r.body);
@@ -473,8 +488,11 @@ export default function Chat({
                         </div>
                       );
                     })}
+                    </div>
                   </div>
                   )}
+
+                  {/* ─── 종합 의견 footer ─── */}
                   {t.replies.length > 0 && (() => {
                     let l = 0,
                       s = 0,
@@ -512,7 +530,7 @@ export default function Chat({
                     const neutralLabel = isCoinSpecific ? "관망" : "중립";
                     return (
                       <div
-                        className="mt-3 -mx-3.5 -mb-3 px-3.5 py-2.5 rounded-b-md border-t border-[var(--border)]"
+                        className="px-3.5 py-2.5 border-t border-[var(--border)]"
                         style={{ background: majority.bg }}
                       >
                         <div className="flex items-center justify-between gap-2">
@@ -693,7 +711,7 @@ export default function Chat({
           );
         })}
       </div>
-      {!hideInput && mode !== "ai" && (
+      {!hideInput && mode !== "ai" && mode !== "agent" && (
         <div className="border-t border-[var(--border)] p-2.5 flex gap-2 bg-[var(--bg-soft)]">
           <input
             value={input}
