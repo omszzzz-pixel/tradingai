@@ -7,9 +7,9 @@ export default function HomeView() {
   return (
     <>
       {/* Desktop: 70/30 split — AI 토론 / 사용자 채팅 */}
-      <div className="hidden lg:flex lg:flex-col lg:h-full max-w-[1400px] mx-auto w-full overflow-hidden">
+      <div className="hidden lg:flex lg:flex-col lg:h-full w-full overflow-hidden">
         <PriceChips />
-        <div className="flex-1 min-h-0 px-4 pb-4 pt-3 flex gap-3">
+        <div className="flex-1 min-h-0 w-full max-w-[1400px] mx-auto px-4 pb-4 pt-3 flex gap-3">
           <div className="flex-[7] min-w-0 flex">
             <Chat fixedMode="agent" />
           </div>
