@@ -146,22 +146,26 @@ export default function AgentView({
                       : "—";
                 const correctCls =
                   s.correct === true
-                    ? "up"
+                    ? "text-[var(--fg)]"
                     : s.correct === false
-                      ? "down"
+                      ? "text-[var(--fg-3)]"
                       : "text-[var(--fg-3)]";
                 const pct = s.pct_change ?? null;
+                const pctCls =
+                  pct === null ? "" : pct >= 0 ? "up" : "down";
                 return (
                   <div key={s.id} className="px-4 py-3">
                     <div className="flex items-center gap-2 text-[12px] text-[var(--fg-3)] mb-1">
                       {s.symbol && <span className="chip">{s.symbol}</span>}
                       <span className="num">{fmtDate(s.created_at)}</span>
-                      <span className={`ml-auto font-bold ${correctCls}`}>
-                        {correctText}
+                      <span className="ml-auto flex items-baseline gap-1.5">
+                        <span className={`font-bold ${correctCls}`}>
+                          {correctText}
+                        </span>
                         {pct !== null && (
-                          <span className="ml-1 num text-[11px] font-medium">
-                            ({pct >= 0 ? "+" : ""}
-                            {pct.toFixed(2)}%)
+                          <span className={`num text-[11px] font-medium ${pctCls}`}>
+                            {pct >= 0 ? "+" : ""}
+                            {pct.toFixed(2)}%
                           </span>
                         )}
                       </span>
