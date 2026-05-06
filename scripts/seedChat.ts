@@ -28,68 +28,95 @@ const USER_NAMES = [
   "롱숏대마왕",
 ];
 
-const ALL_MSGS = [
-  "지금 BTC 추세 어떻게 보세요?",
-  "Sonnet 공격형 진짜 잘하네요 ㅋㅋ",
-  "리더보드 1등 누구임?",
-  "유료 결제하면 근거도 다 보임?",
-  "AI들 분석 진짜 빠릿하네",
-  "오늘 변동성 좀 있는 날이네요",
-  "파월 발언 시간이 언제죠?",
-  "지금 들어가도 됨?",
-  "관망이 답이다",
-  "각 모델별로 성향이 다른게 재밌네요",
-  "Opus는 좀 보수적인듯",
-  "Gemini는 왜 마이너스만",
-  "다들 어디서 매매 정보 얻으세요",
-  "이 사이트 어떻게 알게됨?",
-  "차트만 봐도 시간 잘감 ㅋ",
-  "리더보드 매일 바뀌나요",
-  "GPT-5.4 공격형 ㄴㅇㅅ",
+// ── 인텔/AI 반응형 메시지 ──
+// 사용자 채팅이 왼쪽 AI 토론 흐름과 연결되도록 인텔 이벤트·AI 스탠스에 반응하는 톤
+
+const INTEL_REACTIONS = [
+  // 고래 관련
+  "1200 BTC 또 입금이네 부담스러운데",
+  "0x4f5e 지갑 또 출현이야",
+  "이번 고래 입금은 진짜 빡세보임",
+  "휴면 지갑 깨어나는거 무서움",
+  "Tether mint 떴네 강세 가나",
+  "BlackRock 또 사들이는중",
+  "FTX 청산물량 또 나오네",
+  // 펀딩비 관련
+  "펀딩비 또 마이너스네 ㅋ",
+  "펀딩 -0.05% 진짜 무섭다",
+  "롱 청산각인가",
+  "펀딩비 양전 봤다",
+  "OI 신고가면 뭔가 터질거같음",
+  // 청산 관련
+  "21만 SOL 청산 ㄷㄷ",
+  "30M 한 방에 날라갔네",
+  "캐스케이드 시작인가",
+  "청산 클러스터 또 깨졌다",
+  "롱 청산 폭포수 보고있음",
+  // 김프
+  "김프 2.4% 까지 갔네",
+  "한국 또 들떴다 ㅋㅋ",
+  "김프 정점이면 위험한데",
+  "역김프 가나",
+  "김프 1% 깨면 들어간다",
+  // 차트/지표
+  "RSI 30 오면 매수 타이밍",
+  "MACD 골크 임박이라네",
+  "EMA20 돌파 확인",
+  "ATR 1.5배면 변동성 큰 구간",
+  "다이버전스 진짜 발생한듯",
+  "BB 하단 또 터치",
 ];
 
-const BTC_MSGS = [
-  "BTC 78k 또 깨지나요",
-  "RSI 30 근접인데 매수 타이밍?",
-  "Sonnet이 방금 매수 들어갔네 따라가야하나",
-  "MACD 골든크로스 찍힐지",
-  "이번주 FOMC 영향 어떻게 보세요",
-  "고점 대비 -3% 빠짐",
-  "장기 추세선은 아직 살아있긴 함",
-  "BTC 도미넌스 또 상승중",
-  "거래량 좀 살아나는듯",
-  "미국장 시작전이라 그런가",
-  "지지선 한 번 더 테스트할듯",
-  "Opus 공격형이 방금 숏 들어간거 봤음? 용기있다",
-  "역헤드앤숄더 만들어지는 중?",
-  "ATR 평소 대비 1.5배네",
+const AI_REACTIONS = [
+  // 특정 봇 반응
+  "Sonnet 공격형 또 롱이네 ㅋ",
+  "Opus 보수형은 항상 관망ㅋㅋ",
+  "GPT-5.4 신뢰구간 운운 ㅋㅋㅋ",
+  "Gemini 보수형이 컨센서스 진짜 잘봄",
+  "Opus 공격형이 숏 들어간건 처음 봄",
+  "Sonnet 보수형 신중한게 좋음",
+  "GPT 공격형 베이지안 75%면 신뢰감",
+  "이번엔 Gemini 공격형 짧고 단정",
+  // 종합 의견 반응
+  "오늘 다들 강세각으로 모이네",
+  "관망 우위면 들어가지 말까",
+  "AI 4명 다 롱이면 따라간다",
+  "숏 우위 떴으면 정리해야하나",
+  "AI들 의견 갈리는거 보면 박스권 갈듯",
+  "정확도 60% 봇 따라가면 손해 안볼듯",
+  "보수형이 더 정확도 높지않나",
+  "공격형이 적중률 높을때 따라가야 ㅇㅇ",
+  // 정확도 / 리더보드
+  "정확도 어떻게 계산되는거임?",
+  "리더보드 1등 정확도 65% 진짜야?",
+  "공격형이랑 보수형 차이가 뭐임",
+  "AI 8명중에 누구 따라가는게 답임",
+  "Gemini 정확도 왜 낮음",
+  "Opus 보수형이 1등이네 안전한듯",
 ];
 
-const ETH_MSGS = [
+const MARKET_TALK = [
+  "BTC 80k 근처네 박스권인가",
+  "ETF 자금 또 들어왔다",
+  "FOMC 전이라 박스권 갈듯",
+  "DXY 105 깨면 위험자산 좋을 듯",
+  "10년물 4.4% 위험 신호",
+  "주말이라 변동성 작네",
+  "파월 발언 시간 곧이지",
+  "CPI 발표 이번주임?",
+  "장기 추세선은 아직 살아있음",
+  "도미넌스 다시 상승중",
   "ETH는 BTC 따라가는 모양새",
-  "도미넌스 변화 있나요",
-  "L2 토큰들 분위기 어떰?",
-  "BTC 따라 빠지네",
+  "L2 토큰들 분위기 별로네",
+  "역헤드앤숄더 만들어지는중인가",
+  "지지선 한 번 더 테스트하는듯",
+  "거래량 좀 살아나는중",
+  "미국장 시작전이라 조용",
+  "기관 매수 패턴 또 나오네",
   "이더 강세장은 언제 오나",
-  "스테이킹 수익률 줄었던데",
-  "머지 이후로 변동성 줄긴함",
-  "이더 4k 다시 보고싶다",
 ];
 
-const FREE_MSGS = [
-  "오늘 다들 수익 어떠셨어요",
-  "주말에는 변동성 좀 줄어야하는데",
-  "신규입니다 잘부탁드려요",
-  "퇴근하고 차트보다가 망함 ㅠ",
-  "라떼 한잔 하고 매매 ㄱㄱ",
-  "월급날 d-3",
-  "Sonnet 진짜 똑똑하긴 함",
-  "다른 코인도 추가될까요?",
-  "ETH도 매매하나요?",
-  "추천인 코드는 언제 나옴",
-  "관리자분 수고하십니다",
-  "사이트 디자인 깔끔하네요 잘쓸게요",
-];
+const ALL_MSGS = [...INTEL_REACTIONS, ...AI_REACTIONS, ...MARKET_TALK];
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -119,14 +146,12 @@ async function main() {
     });
   }
 
-  for (const m of ALL_MSGS) addUser("all", m, 5);
-  for (const m of BTC_MSGS) addUser("btc", m, 5);
-  for (const m of ETH_MSGS) addUser("eth", m, 5);
-  for (const m of FREE_MSGS) addUser("free", m, 5);
-
-  for (let i = 0; i < 12; i++) addUser("all", pick(ALL_MSGS), 1);
-  for (let i = 0; i < 8; i++) addUser("btc", pick(BTC_MSGS), 1);
-  for (let i = 0; i < 4; i++) addUser("free", pick(FREE_MSGS), 1);
+  // 한 번씩 등장 (5일 분포)
+  for (const m of ALL_MSGS) addUser("general", m, 5);
+  // 최근 1일 내 추가 노이즈 — 인텔/AI 반응에 가중치
+  for (let i = 0; i < 20; i++) addUser("general", pick(INTEL_REACTIONS), 1);
+  for (let i = 0; i < 18; i++) addUser("general", pick(AI_REACTIONS), 1);
+  for (let i = 0; i < 8; i++) addUser("general", pick(MARKET_TALK), 1);
 
   // ─── Market Intel Bots ────────────────────────────────────────
   // 형식: [헤드라인 (1줄, 핵심 데이터)] / [디테일 (선택)] / 빈줄 / [📌 코멘트 (방향성 인사이트)]
@@ -606,6 +631,28 @@ ETF 자금은 1-3일 후행 반영 패턴. 진입 시점 명확.`,
         parent_message_id: intel.id,
         created_at: new Date(replyAt).toISOString(),
       });
+    }
+
+    // 60% 인텔에 대해 1~3개 사용자 반응을 인텔 시점 직후 ~ AI 답글 끝나는 시점 사이에 분포
+    if (Math.random() < 0.6) {
+      const reactionCount = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < reactionCount; i++) {
+        const offsetSec = 60 + Math.random() * 360; // 1~7분 후
+        const reactAt = intel.at + offsetSec * 1000;
+        // 80% INTEL_REACTIONS / 20% AI_REACTIONS
+        const body =
+          Math.random() < 0.8
+            ? pick(INTEL_REACTIONS)
+            : pick(AI_REACTIONS);
+        rows.push({
+          id: randomUUID(),
+          display_name: pick(USER_NAMES),
+          body,
+          channel: "general",
+          is_bot: false,
+          created_at: new Date(reactAt).toISOString(),
+        });
+      }
     }
   }
 
