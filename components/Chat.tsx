@@ -42,6 +42,31 @@ function fmtTime(iso: string): string {
   });
 }
 
+const AVATAR_PALETTE = [
+  "#ef4444",
+  "#f59e0b",
+  "#10b981",
+  "#06b6d4",
+  "#3b82f6",
+  "#8b5cf6",
+  "#ec4899",
+  "#f97316",
+  "#84cc16",
+  "#14b8a6",
+];
+
+function avatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+}
+
+function avatarInitial(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  return trimmed.slice(0, 1).toUpperCase();
+}
+
 function colorize(text: string): React.ReactNode[] {
   const pattern = /(진입|청산|롱|숏|[+-]\d+\.\d+%)/g;
   const parts: React.ReactNode[] = [];
@@ -237,28 +262,28 @@ export default function Chat({
   }
 
   return (
-    <div
-      className={`flex flex-col h-full min-h-0 w-full ${fixedMode ? "" : "panel"}`}
-    >
-      {fixedMode ? (
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
+    <div className="flex flex-col h-full min-h-0 w-full panel overflow-hidden">
+      {fixedMode === "agent" ? null : fixedMode ? (
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-soft)]">
           {fixedMode === "intel" || fixedMode === "ai" ? (
-            <span className="relative flex h-2.5 w-2.5">
+            <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-          ) : fixedMode === "agent" ? (
-            <span className="text-[16px]">🤖</span>
           ) : (
-            <span className="text-[16px]">💬</span>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-50 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]" />
+            </span>
           )}
-          <span className="text-[15px] font-bold">
+          <span className="text-[14px] font-bold tracking-tight">
             {title ??
               (fixedMode === "intel" || fixedMode === "ai"
                 ? "AI 정보 피드"
-                : fixedMode === "agent"
-                  ? "AI 토론"
-                  : "커뮤니티")}
+                : "커뮤니티")}
+          </span>
+          <span className="ml-auto text-[11px] text-[var(--fg-3)] font-medium">
+            실시간
           </span>
         </div>
       ) : (
@@ -515,21 +540,35 @@ export default function Chat({
           })()}
         {fixedMode !== "agent" && msgs.map((m) => {
           if (!m.is_bot) {
+            const name = m.display_name ?? "익명";
+            const color = avatarColor(name);
             return (
               <div
                 key={m.id}
-                className="mb-3 leading-snug break-words"
+                className="group flex gap-2.5 px-2 py-1.5 -mx-2 rounded-md hover:bg-[var(--row-hover)] transition-colors leading-snug break-words"
               >
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-[14px] font-semibold text-[var(--fg-2)]">
-                    {m.display_name ?? "익명"}
-                  </span>
-                  <span className="text-[var(--fg-3)] num text-[12px]">
-                    {fmtTime(m.created_at)}
-                  </span>
+                <div
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold text-white"
+                  style={{ background: color }}
+                  aria-hidden
+                >
+                  {avatarInitial(name)}
                 </div>
-                <div className="text-[15px] text-[var(--fg)] pl-0.5 leading-relaxed">
-                  {m.body}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-1.5 mb-0.5">
+                    <span
+                      className="text-[13px] font-semibold truncate"
+                      style={{ color }}
+                    >
+                      {name}
+                    </span>
+                    <span className="text-[var(--fg-3)] num text-[11px] shrink-0">
+                      {fmtTime(m.created_at)}
+                    </span>
+                  </div>
+                  <div className="text-[14px] text-[var(--fg)] leading-relaxed">
+                    {m.body}
+                  </div>
                 </div>
               </div>
             );
@@ -648,7 +687,7 @@ export default function Chat({
         })}
       </div>
       {!hideInput && mode !== "ai" && (
-        <div className="border-t border-[var(--border)] p-3 flex gap-2">
+        <div className="border-t border-[var(--border)] p-2.5 flex gap-2 bg-[var(--bg-soft)]">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -661,12 +700,12 @@ export default function Chat({
             placeholder={err ? err : "메시지 (로그인 필요)"}
             maxLength={500}
             disabled={sending}
-            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded px-3 py-2 text-[14px] outline-none focus:border-[var(--accent)] disabled:opacity-60"
+            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-full px-4 py-2 text-[13px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition disabled:opacity-60"
           />
           <button
             onClick={send}
             disabled={sending || !input.trim()}
-            className="text-[14px] px-4 rounded bg-[var(--accent)] text-white font-semibold disabled:opacity-50"
+            className="text-[13px] px-4 rounded-full bg-[var(--accent)] text-white font-semibold hover:opacity-90 disabled:opacity-40 transition shrink-0"
           >
             전송
           </button>
