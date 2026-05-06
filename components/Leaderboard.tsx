@@ -120,7 +120,7 @@ export default function Leaderboard() {
                   </td>
                   <td className="!text-left">
                     <Link
-                      href={`/agents/${r.id}`}
+                      href={`/agents/${r.id}?from=leaderboard`}
                       className="block hover:text-[var(--accent)]"
                     >
                       <div className="font-semibold">{r.display_name}</div>

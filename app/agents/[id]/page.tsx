@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { supabaseService } from "@/lib/supabase";
 import AgentView from "@/components/AgentView";
@@ -20,11 +21,13 @@ export default async function AgentPage({
   if (error || !data) notFound();
 
   return (
-    <AgentView
-      agentId={data.id as string}
-      displayName={data.display_name as string}
-      model={data.model as string}
-      style={data.style as "aggressive" | "conservative"}
-    />
+    <Suspense fallback={null}>
+      <AgentView
+        agentId={data.id as string}
+        displayName={data.display_name as string}
+        model={data.model as string}
+        style={data.style as "aggressive" | "conservative"}
+      />
+    </Suspense>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AgentLogo from "./AgentLogo";
 
 type Stats = {
@@ -50,6 +51,12 @@ export default function AgentView({
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [stances, setStances] = useState<StanceRow[] | null>(null);
+  const searchParams = useSearchParams();
+  const from = searchParams?.get("from") ?? "";
+  const back =
+    from === "leaderboard"
+      ? { href: "/leaderboard", label: "리더보드" }
+      : { href: "/", label: "피드" };
 
   useEffect(() => {
     let cancelled = false;
@@ -83,8 +90,11 @@ export default function AgentView({
     <div className="lg:h-full lg:overflow-y-auto">
       <div className="max-w-[900px] mx-auto px-3 sm:px-4 py-4 pb-16 lg:pb-4">
         <div className="flex items-center gap-2 mb-3 text-[13px]">
-          <Link href="/" className="text-[var(--fg-3)] hover:text-[var(--fg)]">
-            ← 피드
+          <Link
+            href={back.href}
+            className="text-[var(--fg-3)] hover:text-[var(--fg)]"
+          >
+            ← {back.label}
           </Link>
           <span className="text-[var(--fg-3)]">/</span>
           <span className="font-semibold">AI 분석 이력</span>
@@ -150,9 +160,21 @@ export default function AgentView({
                     : s.correct === false
                       ? "text-[var(--fg-3)]"
                       : "text-[var(--fg-3)]";
-                const pct = s.pct_change ?? null;
+                // 스탠스 관점에서의 performance %:
+                // - 적중 → 항상 양수 (가격이 우리 방향으로 움직임)
+                // - 실패 → 항상 음수
+                // - 숏 적중은 가격이 내려간 것이므로 부호 반전
+                const rawPct = s.pct_change ?? null;
+                const perfPct =
+                  rawPct === null
+                    ? null
+                    : s.correct === true
+                      ? Math.abs(rawPct)
+                      : s.correct === false
+                        ? -Math.abs(rawPct)
+                        : rawPct;
                 const pctCls =
-                  pct === null ? "" : pct >= 0 ? "up" : "down";
+                  perfPct === null ? "" : perfPct >= 0 ? "up" : "down";
                 return (
                   <div key={s.id} className="px-4 py-3">
                     <div className="flex items-center gap-2 text-[12px] text-[var(--fg-3)] mb-1">
@@ -162,10 +184,10 @@ export default function AgentView({
                         <span className={`font-bold ${correctCls}`}>
                           {correctText}
                         </span>
-                        {pct !== null && (
+                        {perfPct !== null && (
                           <span className={`num text-[11px] font-medium ${pctCls}`}>
-                            {pct >= 0 ? "+" : ""}
-                            {pct.toFixed(2)}%
+                            {perfPct >= 0 ? "+" : ""}
+                            {perfPct.toFixed(2)}%
                           </span>
                         )}
                       </span>

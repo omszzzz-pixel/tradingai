@@ -431,7 +431,7 @@ export default function Chat({
                                 const name = r.display_name ?? "";
                                 return aid ? (
                                   <Link
-                                    href={`/agents/${aid}`}
+                                    href={`/agents/${aid}?from=feed`}
                                     className="text-[13px] font-bold hover:text-[var(--accent)] hover:underline"
                                   >
                                     {name}
@@ -673,7 +673,7 @@ export default function Chat({
                     : null;
                   const bSlug = !isAgent ? botSlugFromName(name) : null;
                   const href = aid
-                    ? `/agents/${aid}`
+                    ? `/agents/${aid}?from=feed`
                     : bSlug
                       ? `/bots/${bSlug}`
                       : null;
