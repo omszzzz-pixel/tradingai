@@ -198,9 +198,15 @@ export default function Chat({
   }, [mode]);
 
   useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
+    if (!listRef.current) return;
+    const el = listRef.current;
+    const scroll = () => {
+      el.scrollTop = el.scrollHeight;
+    };
+    scroll();
+    requestAnimationFrame(scroll);
+    const t = setTimeout(scroll, 100);
+    return () => clearTimeout(t);
   }, [msgs]);
 
   async function send() {

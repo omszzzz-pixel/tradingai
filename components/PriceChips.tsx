@@ -37,6 +37,32 @@ async function fetchAll(): Promise<Record<string, Stat>> {
   return {};
 }
 
+function Item({
+  short,
+  stat,
+}: {
+  short: string;
+  stat: Stat | undefined;
+}) {
+  const isUp = (stat?.pct ?? 0) >= 0;
+  const cls = isUp ? "up" : "down";
+  const arrow = isUp ? "▲" : "▼";
+  return (
+    <div className="flex items-baseline gap-1.5 px-5 shrink-0">
+      <span className="text-[12px] font-bold text-[var(--fg-2)]">{short}</span>
+      <span className={`num text-[13px] font-semibold ${cls}`}>
+        {stat ? fmtPrice(stat.lastPrice) : "—"}
+      </span>
+      {stat && (
+        <span className={`num text-[11px] ${cls}`}>
+          {arrow}
+          {Math.abs(stat.pct).toFixed(2)}%
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function PriceChips() {
   const [stats, setStats] = useState<Record<string, Stat>>({});
 
@@ -54,27 +80,16 @@ export default function PriceChips() {
     };
   }, []);
 
+  // Repeat 4x to ensure seamless wrap regardless of viewport width
+  const sequence = [...SYMBOLS, ...SYMBOLS, ...SYMBOLS, ...SYMBOLS];
+
   return (
-    <div className="flex items-center gap-x-7 gap-y-2 flex-wrap px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-2)] overflow-x-auto">
-      {SYMBOLS.map((c) => {
-        const s = stats[c.id];
-        const isUp = (s?.pct ?? 0) >= 0;
-        const cls = isUp ? "up" : "down";
-        const arrow = isUp ? "▲" : "▼";
-        return (
-          <div key={c.id} className="flex items-baseline gap-2 shrink-0">
-            <span className="text-[14px] font-bold">{c.short}</span>
-            <span className={`num text-[16px] font-semibold ${cls}`}>
-              {s ? fmtPrice(s.lastPrice) : "—"}
-            </span>
-            {s && (
-              <span className={`num text-[13px] font-medium ${cls}`}>
-                {arrow} {Math.abs(s.pct).toFixed(2)}%
-              </span>
-            )}
-          </div>
-        );
-      })}
+    <div className="border-b border-[var(--border)] bg-[var(--bg-2)] py-1.5 overflow-hidden whitespace-nowrap">
+      <div className="ticker-track">
+        {sequence.map((c, i) => (
+          <Item key={`${c.id}-${i}`} short={c.short} stat={stats[c.id]} />
+        ))}
+      </div>
     </div>
   );
 }

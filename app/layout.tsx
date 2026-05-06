@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import MobileNav from "@/components/MobileNav";
 
 export const metadata: Metadata = {
@@ -33,7 +32,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col lg:h-screen lg:overflow-hidden">
         <Header />
         <main className="flex-1 lg:min-h-0 lg:overflow-hidden">{children}</main>
-        <Footer />
         <MobileNav />
       </body>
     </html>

@@ -19,7 +19,7 @@ export default function HomeView() {
       {/* Mobile: single column */}
       <div className="lg:hidden">
         <PriceChips />
-        <div className="fixed inset-x-0 top-[120px] bottom-[50px] flex">
+        <div className="fixed inset-x-0 top-[88px] bottom-[50px] flex">
           <div className="flex-1 min-h-0 flex">
             <Chat fixedMode="agent" />
           </div>
