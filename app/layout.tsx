@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Header from "@/components/Header";
 import MobileNav from "@/components/MobileNav";
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col lg:h-screen lg:overflow-hidden">
         <Header />
         <main className="flex-1 lg:min-h-0 lg:overflow-hidden">{children}</main>
-        <MobileNav />
+        <Suspense fallback={null}>
+          <MobileNav />
+        </Suspense>
       </body>
     </html>
   );

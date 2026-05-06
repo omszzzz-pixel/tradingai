@@ -1,19 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function MobileNav() {
   const pathname = usePathname() ?? "/";
+  const searchParams = useSearchParams();
+  const tab = searchParams?.get("tab") ?? "";
+
+  const onHome = pathname === "/";
+  const aiActive = onHome && tab !== "chat";
+  const chatActive = onHome && tab === "chat";
+  const leaderboardActive = pathname === "/leaderboard";
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[var(--bg-2)] border-t border-[var(--border)] flex">
-      <Tab href="/" label="피드" active={pathname === "/"} />
-      <Tab
-        href="/leaderboard"
-        label="리더보드"
-        active={pathname === "/leaderboard"}
-      />
+      <Tab href="/" label="AI피드" active={aiActive} />
+      <Tab href="/?tab=chat" label="채팅" active={chatActive} />
+      <Tab href="/leaderboard" label="리더보드" active={leaderboardActive} />
     </nav>
   );
 }

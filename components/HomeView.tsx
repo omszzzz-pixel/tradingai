@@ -1,9 +1,14 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import Chat from "./Chat";
 import PriceChips from "./PriceChips";
 
 export default function HomeView() {
+  const searchParams = useSearchParams();
+  const tab = searchParams?.get("tab") ?? "";
+  const mobileMode: "agent" | "general" = tab === "chat" ? "general" : "agent";
+
   return (
     <>
       {/* Desktop: 70/30 split — AI 토론 / 사용자 채팅 */}
@@ -21,12 +26,15 @@ export default function HomeView() {
         </div>
       </div>
 
-      {/* Mobile: single column */}
+      {/* Mobile: single column, tab-controlled */}
       <div className="lg:hidden">
         <PriceChips />
         <div className="fixed inset-x-0 top-[88px] bottom-[50px] flex">
           <div className="flex-1 min-h-0 flex">
-            <Chat fixedMode="agent" />
+            <Chat
+              fixedMode={mobileMode}
+              title={mobileMode === "general" ? "사용자 채팅" : undefined}
+            />
           </div>
         </div>
       </div>
