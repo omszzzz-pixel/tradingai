@@ -267,17 +267,18 @@ export default function PriceChips() {
     };
   }, [stats]);
 
-  // Repeat 2x for seamless wrap
-  const seq1 = renderSequence(stats, extras, "a");
-  const seq2 = renderSequence(stats, extras, "b");
+  // 4번 반복: 단일 시퀀스 폭이 viewport보다 작아도 -50% 지점에서
+  // 다음 viewport-width 분량이 남아 있어야 빈 공간이 생기지 않음
+  const seqs = ["a", "b", "c", "d"].map((k) =>
+    renderSequence(stats, extras, k),
+  );
 
   return (
     <div className="border-b border-[var(--border)] bg-[var(--bg-2)] py-1.5">
       <div className="max-w-[1400px] mx-auto px-4">
         <div className="overflow-hidden whitespace-nowrap">
           <div className="ticker-track">
-            {seq1}
-            {seq2}
+            {seqs.flat()}
           </div>
         </div>
       </div>
